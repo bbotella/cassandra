@@ -1,4 +1,4 @@
-Add proper hitogram checkup to fix flaky failThresholdSinglePartition test
+Add proper hitogram checkup to fix flaky failThresholdSinglePartition testt
 
 4.1
  * Support DELETE in CQLSSTableWriter (CASSANDRA-14797)
