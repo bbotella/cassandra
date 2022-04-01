@@ -116,7 +116,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -133,7 +133,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -291,7 +291,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -308,7 +308,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -400,7 +400,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -418,7 +418,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -523,7 +523,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -540,7 +540,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -618,7 +618,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -635,7 +635,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -713,7 +713,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -731,7 +731,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -809,7 +809,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -827,7 +827,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -905,7 +905,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -923,7 +923,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1001,7 +1001,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1018,7 +1018,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1145,7 +1145,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1163,7 +1163,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1268,7 +1268,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1285,7 +1285,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1366,7 +1366,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1384,7 +1384,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1443,7 +1443,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1460,7 +1460,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1519,7 +1519,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1582,7 +1582,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1599,7 +1599,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1691,7 +1691,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1800,7 +1800,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1899,7 +1899,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1954,7 +1954,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -1972,7 +1972,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2130,7 +2130,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2148,7 +2148,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2207,7 +2207,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2224,7 +2224,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2302,7 +2302,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2412,7 +2412,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2510,7 +2510,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2527,7 +2527,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2605,7 +2605,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2622,7 +2622,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2700,7 +2700,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2763,7 +2763,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2780,7 +2780,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2872,7 +2872,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2926,7 +2926,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -2989,7 +2989,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -3006,7 +3006,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3087,7 +3087,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -3105,7 +3105,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3197,7 +3197,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -3214,7 +3214,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 8
+    parallelism: 16
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3372,7 +3372,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
@@ -3467,7 +3467,7 @@ jobs:
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
-    - REPEATED_DTEST_COUNT: 100
+    - REPEATED_DTEST_COUNT: 250
     - REPEATED_DTEST_STOP_ON_FAILURE: false
     - REPEATED_UPGRADE_DTEST_NAME: null
     - REPEATED_UPGRADE_DTEST_COUNT: 100
