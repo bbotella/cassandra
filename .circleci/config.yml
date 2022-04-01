@@ -112,7 +112,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.LocalReadSizeWarningTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -133,7 +133,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -287,7 +287,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -308,7 +308,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -396,7 +396,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -418,7 +418,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -519,7 +519,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -540,7 +540,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -614,7 +614,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -635,7 +635,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -709,7 +709,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -731,7 +731,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -805,7 +805,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -827,7 +827,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -901,7 +901,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -923,7 +923,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -997,7 +997,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1018,7 +1018,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1141,7 +1141,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1163,7 +1163,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1264,7 +1264,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1285,7 +1285,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1362,7 +1362,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1384,7 +1384,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1439,7 +1439,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1460,7 +1460,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1515,7 +1515,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1578,7 +1578,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1599,7 +1599,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -1687,7 +1687,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1796,7 +1796,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1895,7 +1895,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1950,7 +1950,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -1972,7 +1972,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2126,7 +2126,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2148,7 +2148,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2203,7 +2203,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2224,7 +2224,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2298,7 +2298,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2408,7 +2408,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2506,7 +2506,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2527,7 +2527,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2601,7 +2601,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2622,7 +2622,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2696,7 +2696,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2759,7 +2759,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2780,7 +2780,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -2868,7 +2868,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2922,7 +2922,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -2985,7 +2985,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -3006,7 +3006,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3083,7 +3083,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -3105,7 +3105,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3193,7 +3193,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -3214,7 +3214,7 @@ jobs:
     resource_class: medium
     working_directory: ~/
     shell: /bin/bash -eo pipefail -l
-    parallelism: 2
+    parallelism: 8
     steps:
     - attach_workspace:
         at: /home/cassandra
@@ -3368,7 +3368,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
@@ -3463,7 +3463,7 @@ jobs:
     - REPEATED_UTEST_TARGET: testsome
     - REPEATED_UTEST_CLASS: org.apache.cassandra.distributed.test.NetstatsBootstrapWithEntireSSTablesCompressionStreamingTest
     - REPEATED_UTEST_METHODS: testWithStreamingEntireSSTablesWithoutCompression
-    - REPEATED_UTEST_COUNT: 50
+    - REPEATED_UTEST_COUNT: 120
     - REPEATED_UTEST_STOP_ON_FAILURE: false
     - REPEATED_DTEST_NAME: null
     - REPEATED_DTEST_VNODES: false
