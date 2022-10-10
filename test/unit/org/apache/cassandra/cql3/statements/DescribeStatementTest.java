@@ -766,8 +766,6 @@ public class DescribeStatementTest extends CQLTester
                                                            "    \"token\" text,\n" +
                                                            "    \"desc\" text\n" +
                                                            ");"));
-        var test = executeDescribeNet(KEYSPACE_PER_TEST, "DESCRIBE TYPE " + type);
-        System.out.println(test.toString());
     }
 
     private static String allTypesTable()
