@@ -19,7 +19,6 @@ package org.apache.cassandra.cql3;
 
 import java.util.Locale;
 import java.nio.ByteBuffer;
-import java.util.regex.Matcher;
 
 import org.apache.cassandra.db.marshal.UTF8Type;
 import org.apache.cassandra.exceptions.SyntaxException;
