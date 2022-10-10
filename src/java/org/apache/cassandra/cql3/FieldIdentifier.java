@@ -19,6 +19,7 @@ package org.apache.cassandra.cql3;
 
 import java.util.Locale;
 import java.nio.ByteBuffer;
+import java.util.regex.Matcher;
 
 import org.apache.cassandra.db.marshal.UTF8Type;
 import org.apache.cassandra.exceptions.SyntaxException;
@@ -30,6 +31,8 @@ import org.apache.cassandra.serializers.MarshalException;
 public class FieldIdentifier
 {
     public final ByteBuffer bytes;
+
+    private static final String ESCAPED_DOUBLE_QUOTE = "\"";
 
     public FieldIdentifier(ByteBuffer bytes)
     {
@@ -49,7 +52,7 @@ public class FieldIdentifier
      */
     public static FieldIdentifier forQuoted(String text)
     {
-        return new FieldIdentifier(convert(text));
+        return new FieldIdentifier(convert(addQuotes(text)));
     }
 
     /**
@@ -72,6 +75,11 @@ public class FieldIdentifier
         {
             throw new SyntaxException(String.format("For field name %s: %s", text, e.getMessage()));
         }
+    }
+
+    private static String addQuotes(String text)
+    {
+        return ESCAPED_DOUBLE_QUOTE + text + ESCAPED_DOUBLE_QUOTE;
     }
 
     @Override
