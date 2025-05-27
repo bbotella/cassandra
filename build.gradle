@@ -1,0 +1,87 @@
+plugins {
+    id 'base' // Applying base plugin for standard lifecycle tasks
+}
+
+group = 'org.apache.cassandra'
+version = '5.1'
+
+// You can add a description if you like, for example:
+description = 'Apache Cassandra'
+
+// Add a wrapper task to ensure the correct Gradle version is used.
+// This is usually not strictly necessary if you always use ./gradlew but can be good practice.
+wrapper {
+    gradleVersion = '8.7' // Matches the version set during initialization
+    distributionType = Wrapper.DistributionType.ALL // Optional: for IDEs to have sources
+}
+
+// Define a helper function to create Ant task wrappers
+def antTask(String taskName, String descriptionText = "Runs the Ant '$taskName' target.") {
+    tasks.register(taskName) {
+        description = descriptionText
+        group = 'Ant Tasks' // Group these tasks together in `gradle tasks` output
+        doLast {
+            exec {
+                commandLine 'ant', taskName
+            }
+        }
+    }
+}
+
+// Create Gradle tasks that wrap Ant targets
+antTask('build', 'Compiles the main Cassandra classes by calling Ant.')
+antTask('clean', 'Removes all locally created artifacts by calling Ant.')
+antTask('jar', 'Assembles Cassandra JAR files by calling Ant.')
+antTask('check', 'Verifies source code and dependencies by calling Ant (runs RAT, Checkstyle, etc.).')
+antTask('artifacts', 'Creates Cassandra tarball and Maven artifacts by calling Ant.')
+
+// It's good practice to map standard Gradle lifecycle tasks to your main tasks.
+// For example, making Gradle's 'build' task depend on our Ant-wrapping 'build' task.
+tasks.named('build') {
+    dependsOn tasks.named(antTask('build').name) // tasks.named('build') refers to Gradle's built-in build task
+}
+
+tasks.named('clean') {
+    // Make Gradle's 'clean' task execute our Ant-wrapping 'clean'
+    // We use doFirst here if Ant's clean needs to run before Gradle's default clean actions,
+    // or doLast if it should run after. Often, for a full wrapper, you might just want
+    // it to *be* the Ant clean. For simplicity, let's make it execute the Ant clean.
+    // We'll clear its existing actions and add ours.
+    actions.clear()
+    dependsOn tasks.named(antTask('clean').name)
+}
+
+// Add Gradle tasks for various Ant test targets
+antTask('test', 'Runs the main Ant unit test target.')
+antTask('testsome', 'Runs specific Ant unit tests. Pass test names via project properties, e.g., -Ptest.name=YourTestClass.')
+antTask('long-test', 'Runs long-running Ant tests.')
+antTask('burn-test', 'Runs Ant burn tests.')
+antTask('cql-test', 'Runs Ant CQL tests.')
+antTask('stress-test', 'Runs Ant stress tests. Ensure stress tool is built (e.g., via "ant stress-build" or a wrapped task).')
+antTask('fqltool-test', 'Runs Ant fqltool tests. Ensure fqltool is built (e.g., via "ant fqltool-build" or a wrapped task).')
+antTask('test-jvm-dtest', 'Runs Ant in-JVM distributed tests (dtests).')
+
+// Optional: You could create a general "testAll" or similar task
+// that depends on several of these, but for now, individual wrappers are fine.
+
+// Add Gradle tasks for IDE integration file generation
+antTask('generate-idea-files', 'Generates IntelliJ IDEA project files by calling Ant.')
+antTask('generate-eclipse-files', 'Generates Eclipse project files by calling Ant.')
+
+// Add a general purpose Gradle task to run any Ant target
+tasks.register('antTarget') {
+    description = "Runs an arbitrary Ant target specified by the 'antTargetName' project property (e.g., ./gradlew antTarget -PantTargetName=yourAntTarget)."
+    group = 'Ant Tasks'
+    doLast {
+        if (project.hasProperty('antTargetName')) {
+            def targetName = project.property('antTargetName')
+            logger.lifecycle("Executing Ant target: ${targetName}...")
+            exec {
+                commandLine 'ant', targetName
+            }
+        } else {
+            logger.warn("No Ant target specified. Use -PantTargetName=<target> to specify an Ant target.")
+            logger.warn("Example: ./gradlew antTarget -PantTargetName=javadoc")
+        }
+    }
+}
