@@ -13,6 +13,7 @@ stopped.
 * xref:cassandra:managing/tools/sstable/sstablemetadata.adoc[sstablemetadata]
 * xref:cassandra:managing/tools/sstable/sstableofflinerelevel.adoc[sstableofflinerelevel]
 * xref:cassandra:managing/tools/sstable/sstablepartitions.adoc[sstablepartitions]
+* xref:cassandra:managing/tools/sstable/sstable2parquet.adoc[sstable2parquet]: Converts SSTables to Apache Parquet format.
 * xref:cassandra:managing/tools/sstable/sstablerepairedset.adoc[sstablerepairdset]
 * xref:cassandra:managing/tools/sstable/sstablescrub.adoc[sstablescrub]
 * xref:cassandra:managing/tools/sstable/sstablesplit.adoc[sstablesplit]

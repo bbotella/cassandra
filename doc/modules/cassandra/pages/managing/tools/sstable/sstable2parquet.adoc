@@ -1,0 +1,35 @@
+= sstable2parquet
+
+== Overview
+
+The `sstable2parquet` tool converts Cassandra SSTable files into the Apache Parquet columnar storage format. This allows for offline analysis of Cassandra data using big data processing frameworks that support Parquet, such as Apache Spark and Apache Hive, or for archiving data in a format suitable for analytical queries.
+
+The tool reads the schema and data from a given SSTable (specifically, the `Data.db` component) and writes it out to a specified Parquet file. The schema conversion maps Cassandra data types to corresponding Avro/Parquet types.
+
+== Synopsis
+
+```bash
+sstable2parquet -i <sstable_data_file_path> -o <output_parquet_file_path>
+```
+
+== Options
+
+-i, --input <sstable_data_file_path>::
+Required. The path to the SSTable Data.db file (e.g., `/path/to/data/keyspace/table-uuid/mc-1-big-Data.db`).
+-o, --output <output_parquet_file_path>::
+Required. The path where the output Parquet file will be written.
+-h, --help::
+Display help information.
+
+== Example
+
+```bash
+# Convert a specific SSTable Data.db file to a Parquet file
+tools/bin/sstable2parquet -i /var/lib/cassandra/data/mykeyspace/mytable-aabbccddeeff00112233445566778899/mc-10-big-Data.db -o /tmp/mytable_export.parquet
+```
+
+== Notes
+* The tool processes SSTables offline. It does not require a running Cassandra instance if the SSTable files and their schema information (implicitly within the SSTable or through accessible schema files if that mechanism were used by the tool, though this implementation relies on metadata within the SSTable itself) are available.
+* The current version primarily supports frozen collections and UDTs. Support for non-frozen collections might be limited.
+* Ensure that the environment where the tool is run has sufficient memory, especially for large SSTables. The default JVM options in the script are `-Xms128M -Xmx1G` but may need adjustment.
+* The output Parquet file will use SNAPPY compression by default.
