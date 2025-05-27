@@ -10,43 +10,43 @@ The project now includes a Gradle wrapper (`gradlew`). This wrapper is primarily
 
 ### Available Gradle Tasks
 
-Most common Ant targets have been wrapped as Gradle tasks. You can see all available tasks by running:
+Most common Ant targets have been wrapped as Gradle tasks with an "ant" prefix to avoid conflicts with standard Gradle tasks. You can see all available tasks by running:
 
 ```bash
 ./gradlew tasks
 ```
 
-The Ant wrapper tasks are grouped under "Ant Tasks". Here are some of Fthe key ones:
+The Ant wrapper tasks are grouped under "Ant Tasks". Here are some of the key ones:
 
-*   **`./gradlew build`**: Compiles the main Cassandra classes (wraps `ant build`).
-*   **`./gradlew clean`**: Removes all locally created artifacts (wraps `ant clean`).
-*   **`./gradlew jar`**: Assembles Cassandra JAR files (wraps `ant jar`).
-*   **`./gradlew check`**: Verifies source code and dependencies (runs RAT, Checkstyle, etc., by wrapping `ant check`).
-*   **`./gradlew artifacts`**: Creates Cassandra tarball and Maven artifacts (wraps `ant artifacts`).
+*   **`./gradlew antBuild`**: Compiles the main Cassandra classes (wraps `ant build`).
+*   **`./gradlew antClean`**: Removes all locally created artifacts (wraps `ant clean`).
+*   **`./gradlew antJar`**: Assembles Cassandra JAR files (wraps `ant jar`).
+*   **`./gradlew antCheck`**: Verifies source code and dependencies (runs RAT, Checkstyle, etc., by wrapping `ant check`).
+*   **`./gradlew antArtifacts`**: Creates Cassandra tarball and Maven artifacts (wraps `ant artifacts`).
 
 #### Test Tasks
 
-Various Ant test targets are also wrapped:
+Various Ant test targets are also wrapped with the "ant" prefix:
 
-*   **`./gradlew test`**: Runs the main unit tests.
-*   **`./gradlew testsome -Ptest.name=your.TestClass [-Ptest.methods=testMethod1,testMethod2]`**: Runs specific unit tests.
+*   **`./gradlew antTest`**: Runs the main unit tests.
+*   **`./gradlew antTestsome -Ptest.name=your.TestClass [-Ptest.methods=testMethod1,testMethod2]`**: Runs specific unit tests.
     *   Use the `-Ptest.name` project property to specify the fully qualified test class name.
     *   Optionally, use `-Ptest.methods` to specify a comma-separated list of methods.
-*   **`./gradlew long-test`**: Runs long-running tests.
-*   **`./gradlew burn-test`**: Runs burn tests.
-*   **`./gradlew cql-test`**: Runs CQL tests.
-*   **`./gradlew stress-test`**: Runs stress tests (ensure stress tool is built, e.g., via `ant stress-build`).
-*   **`./gradlew fqltool-test`**: Runs fqltool tests (ensure fqltool is built, e.g., via `ant fqltool-build`).
-*   **`./gradlew test-jvm-dtest`**: Runs in-JVM distributed tests (dtests).
+*   **`./gradlew antLongTest`**: Runs long-running tests.
+*   **`./gradlew antBurnTest`**: Runs burn tests.
+*   **`./gradlew antCqlTest`**: Runs CQL tests.
+*   **`./gradlew antStressTest`**: Runs stress tests (ensure stress tool is built, e.g., via `ant stress-build`).
+*   **`./gradlew antFqltoolTest`**: Runs fqltool tests (ensure fqltool is built, e.g., via `ant fqltool-build`).
+*   **`./gradlew antTestJvmDtest`**: Runs in-JVM distributed tests (dtests).
 
 #### IDE Integration
 
-*   **`./gradlew generate-idea-files`**: Generates IntelliJ IDEA project files.
-*   **`./gradlew generate-eclipse-files`**: Generates Eclipse project files.
+*   **`./gradlew antGenerateIdeaFiles`**: Generates IntelliJ IDEA project files.
+*   **`./gradlew antGenerateEclipseFiles`**: Generates Eclipse project files.
 
 #### Running Arbitrary Ant Targets
 
-If you need to run an Ant target that does not have an explicit Gradle wrapper, you can use the `antTarget` task:
+If you need to run an Ant target that does not have an explicit Gradle wrapper, you can use the `antTarget` task (this task is not prefixed):
 
 ```bash
 ./gradlew antTarget -PantTargetName=yourAntTargetName
@@ -62,7 +62,7 @@ For example, to run `ant javadoc`:
 
 When using Gradle tasks that wrap Ant targets (including the generic `antTarget`), Ant properties can often be passed as Gradle project properties (`-Pproperty=value`) or system properties (`-Dproperty=value`), depending on how the Ant script consumes them.
 
-For tasks like `testsome`, specific guidance is provided (e.g., `-Ptest.name=...`). For others, you might need to refer to `build.xml` to see how properties are used. Generally, Gradle's `exec` task (used by the wrappers) can be configured to pass these through.
+For tasks like `antTestsome`, specific guidance is provided (e.g., `-Ptest.name=...`). For others, you might need to refer to `build.xml` to see how properties are used.
 
 ## Future Migration: Ant to Native Gradle
 
