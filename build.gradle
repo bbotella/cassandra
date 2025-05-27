@@ -68,3 +68,22 @@ tasks.register('antTarget') {
         }
     }
 }
+
+// Additional Ant task wrappers
+antTask('realclean', 'antRealclean', 'Removes the entire build directory and all downloaded artifacts by calling Ant.')
+antTask('cleanall', 'antCleanall', 'Alias for antRealclean; removes build directory and downloaded artifacts by calling Ant.')
+antTask('javadoc', 'antJavadoc', 'Creates Javadoc for the project by calling Ant.')
+antTask('javadoc-jar', 'antJavadocJar', 'Assembles the Javadoc JAR by calling Ant.')
+antTask('sources-jar', 'antSourcesJar', 'Assembles the sources JAR by calling Ant.')
+antTask('gen-doc', 'antGenDoc', 'Generates main project documentation by calling Ant.')
+antTask('generate-cql-html', 'antGenerateCqlHtml', 'Generates CQL HTML documentation by calling Ant.')
+antTask('bintar', 'antBintar', 'Creates the Cassandra binary tarball by calling Ant.')
+antTask('dtest-jar', 'antDtestJar', 'Creates the dtest JAR by calling Ant.')
+antTask('codecoverage', 'antCodecoverage', 'Generates a code coverage report by calling Ant (runs JaCoCo).')
+antTask('jacoco-report', 'antJacocoReport', 'Generates a JaCoCo report from existing execution data by calling Ant.')
+antTask('testclasslist', 'antTestclasslist', 'Runs tests specified in a class list file by calling Ant. Configure file via Ant properties.')
+antTask('simulator-asm-build', 'antSimulatorAsmBuild', 'Builds the simulator-asm module by calling Ant.')
+antTask('simulator-bootstrap-build', 'antSimulatorBootstrapBuild', 'Builds the simulator-bootstrap module by calling Ant.')
+antTask('simulator-jars', 'antSimulatorJars', 'Assembles simulator JARs by calling Ant.')
+antTask('mvn-install', 'antMvnInstall', 'Installs project artifacts to the local Maven repository by calling Ant.')
+antTask('publish', 'antPublish', 'Publishes project artifacts to the configured Maven repository by calling Ant.')

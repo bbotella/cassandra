@@ -18,16 +18,30 @@ Most common Ant targets have been wrapped as Gradle tasks with an "ant" prefix t
 
 The Ant wrapper tasks are grouped under "Ant Tasks". Here are some of the key ones:
 
+#### Core Build Tasks
 *   **`./gradlew antBuild`**: Compiles the main Cassandra classes (wraps `ant build`).
-*   **`./gradlew antClean`**: Removes all locally created artifacts (wraps `ant clean`).
 *   **`./gradlew antJar`**: Assembles Cassandra JAR files (wraps `ant jar`).
 *   **`./gradlew antCheck`**: Verifies source code and dependencies (runs RAT, Checkstyle, etc., by wrapping `ant check`).
+
+#### Cleaning Tasks
+*   **`./gradlew antClean`**: Removes all locally created artifacts by calling Ant (wraps `ant clean`).
+*   **`./gradlew antRealclean`**: Removes the entire build directory and all downloaded artifacts by calling Ant (wraps `ant realclean`).
+*   **`./gradlew antCleanall`**: Alias for antRealclean; removes build directory and downloaded artifacts by calling Ant (wraps `ant cleanall`).
+
+#### Artifact Generation Tasks
 *   **`./gradlew antArtifacts`**: Creates Cassandra tarball and Maven artifacts (wraps `ant artifacts`).
+*   **`./gradlew antBintar`**: Creates the Cassandra binary tarball by calling Ant (wraps `ant bintar`).
+*   **`./gradlew antSourcesJar`**: Assembles the sources JAR by calling Ant (wraps `ant sources-jar`).
+*   **`./gradlew antJavadocJar`**: Assembles the Javadoc JAR by calling Ant (wraps `ant javadoc-jar`).
+*   **`./gradlew antDtestJar`**: Creates the dtest JAR by calling Ant (wraps `ant dtest-jar`).
+*   **`./gradlew antSimulatorJars`**: Assembles simulator JARs by calling Ant (wraps `ant simulator-jars`).
 
-#### Test Tasks
+#### Documentation Tasks
+*   **`./gradlew antJavadoc`**: Creates Javadoc for the project by calling Ant (wraps `ant javadoc`).
+*   **`./gradlew antGenDoc`**: Generates main project documentation by calling Ant (wraps `ant gen-doc`).
+*   **`./gradlew antGenerateCqlHtml`**: Generates CQL HTML documentation by calling Ant (wraps `ant generate-cql-html`).
 
-Various Ant test targets are also wrapped with the "ant" prefix:
-
+#### Test and Coverage Tasks
 *   **`./gradlew antTest`**: Runs the main unit tests.
 *   **`./gradlew antTestsome -Ptest.name=your.TestClass [-Ptest.methods=testMethod1,testMethod2]`**: Runs specific unit tests.
     *   Use the `-Ptest.name` project property to specify the fully qualified test class name.
@@ -38,11 +52,19 @@ Various Ant test targets are also wrapped with the "ant" prefix:
 *   **`./gradlew antStressTest`**: Runs stress tests (ensure stress tool is built, e.g., via `ant stress-build`).
 *   **`./gradlew antFqltoolTest`**: Runs fqltool tests (ensure fqltool is built, e.g., via `ant fqltool-build`).
 *   **`./gradlew antTestJvmDtest`**: Runs in-JVM distributed tests (dtests).
+*   **`./gradlew antTestclasslist`**: Runs tests specified in a class list file by calling Ant. Configure file via Ant properties.
+*   **`./gradlew antCodecoverage`**: Generates a code coverage report by calling Ant (runs JaCoCo).
+*   **`./gradlew antJacocoReport`**: Generates a JaCoCo report from existing execution data by calling Ant.
 
-#### IDE Integration
-
+#### IDE Integration & Sub-module Builds
 *   **`./gradlew antGenerateIdeaFiles`**: Generates IntelliJ IDEA project files.
 *   **`./gradlew antGenerateEclipseFiles`**: Generates Eclipse project files.
+*   **`./gradlew antSimulatorAsmBuild`**: Builds the simulator-asm module by calling Ant.
+*   **`./gradlew antSimulatorBootstrapBuild`**: Builds the simulator-bootstrap module by calling Ant.
+
+#### Publishing Tasks
+*   **`./gradlew antMvnInstall`**: Installs project artifacts to the local Maven repository by calling Ant.
+*   **`./gradlew antPublish`**: Publishes project artifacts to the configured Maven repository by calling Ant.
 
 #### Running Arbitrary Ant Targets
 
@@ -52,10 +74,10 @@ If you need to run an Ant target that does not have an explicit Gradle wrapper, 
 ./gradlew antTarget -PantTargetName=yourAntTargetName
 ```
 
-For example, to run `ant javadoc`:
+For example, to run `ant some-other-target`:
 
 ```bash
-./gradlew antTarget -PantTargetName=javadoc
+./gradlew antTarget -PantTargetName=some-other-target
 ```
 
 ### Passing Properties to Ant Tasks
