@@ -39,6 +39,8 @@ import javax.management.remote.JMXConnectorServer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.apache.cassandra.profiler.AsyncProfiler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,6 +260,8 @@ public class CassandraDaemon
         logSystemInfo(logger);
 
         NativeLibrary.tryMlockall();
+
+        AsyncProfiler.instance();
 
         Keyspace.setInitialized();
         CommitLog.instance.start();
