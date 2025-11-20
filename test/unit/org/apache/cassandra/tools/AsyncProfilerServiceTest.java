@@ -41,29 +41,36 @@ public class AsyncProfilerServiceTest
     private static String testOutputFile = "/tmp/test-profile.html";
 
     @BeforeClass
-    public static void setUpClass() {
+    public static void setUpClass()
+    {
         profiler = new AsyncProfilerService();
 
-        if (!profiler.isAvailable()) {
+        if (!profiler.isAvailable())
+        {
             fail("AsyncProfilerService could not initialize (native lib not found or invalid).");
         }
     }
 
     @Before
-    public void setUp(){
-        System.setProperty(ASYNC_PROFILER_ENABLED.getKey(), "true");
+    public void setUp()
+    {
+        ASYNC_PROFILER_ENABLED.setBoolean(true);
     }
 
     @After
     public void tearDown()
     {
-        try {
-            profiler.stop(testOutputFile);
+        try
+        {
+            profiler.stop();
             File outputFile = new File(testOutputFile);
-            if (outputFile.exists()) {
+            if (outputFile.exists())
+            {
                 outputFile.delete();
             }
-        } catch (Exception e){
+        }
+        catch (Exception e)
+        {
             // The only meaningful exception that can surface here is if profiler.start
             // was not called prior to profiler.stop, we can safely ignore this.
         }
@@ -71,13 +78,14 @@ public class AsyncProfilerServiceTest
 
     @Test
     public void testStartAndStopProfiling() {
-
-
-        try {
-            profiler.start("cpu", "flamegraph");
-            Thread.sleep(5000);
-            profiler.stop(testOutputFile);
-        } catch (Exception e) {
+        try
+        {
+            profiler.start("cpu", "flamegraph", 10, testOutputFile);
+            Thread.sleep(2000);
+            profiler.stop();
+        }
+        catch (Exception e)
+        {
             fail("Profiling failed: " + e.getMessage());
         }
 
@@ -87,35 +95,47 @@ public class AsyncProfilerServiceTest
     }
 
     @Test
-    public void testInvalidEventThrowsException() {
-        try {
-            profiler.start("not_a_real_event", "flamegraph");
+    public void testInvalidEventThrowsException()
+    {
+        try
+        {
+            profiler.start("not_a_real_event", "flamegraph", 60, testOutputFile);
             fail("Expected RuntimeException due to invalid event");
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e)
+        {
             assertNotNull(e.getMessage());
             assertTrue("Invalid event should not start profiler", e.getMessage().contains("Event must be one or a combination of"));
         }
     }
 
     @Test
-    public void testInvalidFormatThrowsException() {
-        try {
-            profiler.start("cpu", "not_a_real_format");
+    public void testInvalidFormatThrowsException()
+    {
+        try
+        {
+            profiler.start("cpu", "not_a_real_format", 60, testOutputFile);
             fail("Expected RuntimeException due to invalid format");
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e)
+        {
             assertNotNull(e.getMessage());
             assertTrue("Invalid format should not start profiler", e.getMessage().contains("Format must be one or a combination of"));
         }
     }
 
     @Test
-    public void testInvalidOutputFileNameThrowsException() {
-        try {
-            profiler.start("cpu", "flamegraph");
+    public void testInvalidOutputFileNameThrowsException()
+    {
+        try
+        {
+            profiler.start("cpu", "flamegraph", 60, "| grep test");
             Thread.sleep(5000);
-            profiler.stop("| grep test");
+            profiler.stop();
             fail("Expected RuntimeException due to invalid output file name");
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             assertNotNull(e.getMessage());
             assertTrue("Invalid output file name", e.getMessage().contains("Output file name must not contain any invalid characters"));
         }
@@ -126,8 +146,8 @@ public class AsyncProfilerServiceTest
     {
         try
         {
-            profiler.start("cpu", "flamegraph");
-            profiler.start("cpu", "flamegraph");
+            profiler.start("cpu", "flamegraph", 60, testOutputFile);
+            profiler.start("cpu", "flamegraph", 60, testOutputFile);
             fail("Expected IllegalStateException due to multiple start calls");
         }
         catch (IllegalStateException e)
@@ -142,7 +162,7 @@ public class AsyncProfilerServiceTest
     {
         try
         {
-            System.setProperty(ASYNC_PROFILER_ENABLED.getKey(), "false");
+            ASYNC_PROFILER_ENABLED.setBoolean(false);
             profiler.execute(String.format("start,event=cpu"));
             fail("Expected IllegalStateException due to disabled profiler");
         }
@@ -154,30 +174,17 @@ public class AsyncProfilerServiceTest
     }
 
     @Test
-    public void testAdvancedModeDisabledThrowsException()
+    public void testAdvancedModeEnabledSuccess()
     {
         try
         {
-            System.setProperty(ASYNC_PROFILER_ADVANCED_MODE.getKey(), "false");
-            profiler.execute(String.format("start,event=cpu"));
-            fail("Expected IllegalStateException due to disabled advanced mode");
-        }
-        catch (IllegalStateException e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("ASYNC_PROFILER_ADVANCED_MODE is false", e.getMessage().contains("ASYNC_PROFILER_ADVANCED_MODE must be set to true to execute raw commands."));
-        }
-    }
-
-    @Test
-    public void testAdvancedModeEnabledSuccess()
-    {
-        try {
-            System.setProperty(ASYNC_PROFILER_ADVANCED_MODE.getKey(), "true");
+            ASYNC_PROFILER_ADVANCED_MODE.setBoolean(true);
             profiler.execute(String.format("start,event=cpu"));
             Thread.sleep(5000);
             profiler.execute(String.format("stop,file=%s", testOutputFile));
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             fail("Profiling failed: " + e.getMessage());
         }
 

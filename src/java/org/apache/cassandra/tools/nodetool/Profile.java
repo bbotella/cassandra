@@ -1,8 +1,11 @@
 package org.apache.cassandra.tools.nodetool;
 
+import java.nio.file.Path;
+
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
 
+import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -21,8 +24,14 @@ public class Profile extends AbstractCommand {
     @Option(names = {"-r", "--raw"}, description = "Raw commands to execute")
     public String raw;
 
-    @Option(names = {"-o", "--output"}, description = "Output file for profile dump")
-    public String outputFile = "/tmp/profile.html";
+    @Option(names = {"-o", "--output"}, description = "Output file path dump")
+    public String outputFolder = "/tmp/cassandra_profiling";
+    
+    @Option(names = {"-fn", "--filename"}, description = "File Name")
+    public String filename = FBUtilities.now().toString() + ".html";
+
+    @Option(names = {"-t", "--timeout"}, description = "Timeout")
+    public int timeout = 60;
 
     @Option(names = {"-f", "--format"}, description = "Output format (flamegraph, tree, traces, etc.)")
     public String outputFormat = "flamegraph";
@@ -38,10 +47,10 @@ public class Profile extends AbstractCommand {
         try {
             if (start) {
                 System.out.printf("Starting async-profiler: event=%s, format=%s\n", event, outputFormat);
-                profiler.start(event, outputFormat);
+                profiler.start(event, outputFormat, 60, Path.of(outputFolder, filename).toString());
             } else if (stop) {
-                System.out.printf("Stopping profiler and writing output to: %s\n", outputFile);
-                profiler.stop(outputFile);
+                System.out.printf("Stopping profiler\n");
+                profiler.stop();
             } else if (raw != null){
                 System.out.printf("Executing raw command: %s\n", raw);
                 profiler.execute(raw);
