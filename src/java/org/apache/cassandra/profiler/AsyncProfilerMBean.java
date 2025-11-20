@@ -20,9 +20,9 @@ package org.apache.cassandra.profiler;
 
 public interface AsyncProfilerMBean
 {
-    void start(String event, String outputFormat, int timeout, String outputPath);
+    void start(String event, String outputFormat, int timeout, String outputFileName);
 
-    void stop();
+    void stop(String outputFileName);
 
     void execute(String command);
 

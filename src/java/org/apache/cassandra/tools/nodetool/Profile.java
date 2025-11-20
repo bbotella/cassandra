@@ -18,7 +18,8 @@
 
 package org.apache.cassandra.tools.nodetool;
 
-import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
@@ -27,57 +28,95 @@ import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "profile", description = "Run Async-Profiler on the cassandra process")
-public class Profile extends AbstractCommand {
-
-    @Option(names = {"-s", "--start"}, description = "Start profiling")
-    public boolean start;
-
-    @Option(names = {"-x", "--stop"}, description = "Stop profiling and dump output")
-    public boolean stop;
-
-    @Option(names = {"-e", "--event"}, description = "Event to profile (cpu, alloc, lock, wall, etc.)")
-    public String event = "cpu";
-
-    @Option(names = {"-r", "--raw"}, description = "Raw commands to execute")
-    public String raw;
-
-    @Option(names = {"-o", "--output"}, description = "Output file path dump")
-    public String outputFolder = "/tmp/cassandra_profiling";
-    
-    @Option(names = {"-fn", "--filename"}, description = "File Name")
-    public String filename = FBUtilities.now().toString() + ".html";
-
-    @Option(names = {"-t", "--timeout"}, description = "Timeout in seconds")
-    public int timeout = 60;
-
-    @Option(names = {"-f", "--format"}, description = "Output format (flamegraph, tree, traces, etc.)")
-    public String outputFormat = "flamegraph";
-
+@Command(name = "profile", description = "Manage Async-Profiler on the cassandra process",
+         subcommands = {
+            Profile.Start.class,
+            Profile.Stop.class,
+            Profile.Raw.class
+         })
+public class Profile extends AbstractCommand
+{
     @Override
     public void execute(NodeProbe probe) {
-        AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
-        if (!profiler.isAvailable()) {
-            System.err.println("Async-profiler native library is not loaded or unavailable.");
-            return;
-        }
+        AbstractCommand cmd = new Start();
+        cmd.probe(probe);
+        cmd.logger(output);
+        cmd.run();
+    }
 
-        try {
-            if (start) {
-                System.out.printf("Starting async-profiler: event=%s, format=%s\n", event, outputFormat);
-                profiler.start(event, outputFormat, timeout, Path.of(outputFolder, filename).toString());
-            } else if (stop) {
-                System.out.printf("Stopping profiler\n");
-                profiler.stop();
-            } else if (raw != null){
-                System.out.printf("Executing raw command: %s\n", raw);
-                profiler.execute(raw);
-            } else {
-                System.out.println("Use --start, --stop, or --raw to control profiling.");
+    @Command(name = "start", description = "Run Async-Profiler on the cassandra process")
+    public static class Start extends AbstractCommand
+    {
+
+        @Option(names = {"-e", "--event"}, description = "Event to profile (cpu, alloc, lock, wall, etc.)")
+        public String event = "cpu";
+
+        @Option(names = {"-o", "--output"}, description = "File Name")
+        public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
+                                                  .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
+
+        @Option(names = {"-t", "--timeout"}, description = "Timeout in seconds")
+        public int timeout = 60;
+
+        @Option(names = {"-f", "--format"}, description = "Output format (flamegraph, tree, traces, etc.)")
+        public String outputFormat = "flamegraph";
+
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
+
+            if (!profiler.isAvailable()) {
+                System.err.println("Async-profiler native library is not loaded or unavailable.");
+                return;
             }
-        } catch (Exception e) {
-            System.err.println("Error while using profiler: " + e.getMessage());
-            e.printStackTrace();
+
+            System.out.printf("Starting async-profiler: event=%s, format=%s\n", event, outputFormat);
+            profiler.start(event, outputFormat, timeout, filename);
+        }
+    }
+
+    @Command(name = "stop", description = "Stop Async-Profiler on the cassandra process")
+    public static class Stop extends AbstractCommand
+    {
+        @Option(names = {"-o", "--output"}, description = "File Name")
+        public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
+                                                  .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
+
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
+
+            if (!profiler.isAvailable()) {
+                System.err.println("Async-profiler native library is not loaded or unavailable.");
+                return;
+            }
+
+            System.out.printf("Stopping profiler\n");
+            profiler.stop(filename);
+        }
+    }
+
+    @Command(name = "raw", description = "Execute an arbitrary command on Async-Profiler on the cassandra process")
+    public static class Raw extends AbstractCommand
+    {
+
+        @Option(names = {"-c", "--command"}, description = "Raw commands to execute")
+        public String command;
+
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
+
+            if (!profiler.isAvailable()) {
+                System.err.println("Async-profiler native library is not loaded or unavailable.");
+                return;
+            }
+
+            System.out.printf("Executing raw command: %s\n", command);
+            profiler.execute(command);
         }
     }
 }

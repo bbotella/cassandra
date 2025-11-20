@@ -23,10 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_OUTPUT_DIRECTORY;
 
 public class AsyncProfilerService
 {
@@ -34,7 +37,8 @@ public class AsyncProfilerService
 
     private static final Set<String> VALID_EVENTS = Set.of("cpu", "alloc", "lock", "wall", "nativemem", "cache-misses");
     private static final Set<String> VALID_FORMATS = Set.of("flat","traces","collapsed","flamegraph","tree","jfr","otlp");
-    private static final Character[] INVALID_OUTPUT_FILENAME_CHARS = {'"', '*', '<', '>', '?', '|'};
+
+    private static final Pattern VALID_FILENAME_REGEX_PATTERN = Pattern.compile("^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
 
     private static AsyncProfiler profilerInstance;
 
@@ -47,18 +51,18 @@ public class AsyncProfilerService
         }
         catch (Throwable t)
         {
-            System.out.println("async-profiler initialization ERROR");
-            t.printStackTrace();
+            logger.error("async-profiler initialization ERROR");
             profilerInstance = null;
         }
     }
 
-    public void start(String event, String outputFormat, int timeout, String outputPath) {
+    public void start(String event, String outputFormat, int timeout, String outputFileName)
+    {
         checkProfilerInstance();
         validateEvent(event);
         validateFormat(outputFormat);
-        validateOutputFileName(outputPath);
-
+        validateOutputFileName(outputFileName);
+        String outputPath = Path.of(ASYNC_PROFILER_OUTPUT_DIRECTORY.getString(), outputFileName).toString();
         try
         {
             String cmd = String.format("start,%s,event=%s,timeout=%s,file=%s",
@@ -77,15 +81,20 @@ public class AsyncProfilerService
         }
     }
 
-    public void stop()
+    public void stop(String outputFileName)
     {
         checkProfilerInstance();
-        String cmd = "stop";
+        validateOutputFileName(outputFileName);
+
+        String outputPath = Path.of(ASYNC_PROFILER_OUTPUT_DIRECTORY.getString(), outputFileName).toString();
+
+        String cmd = String.format("stop,file=%s",
+                                   outputPath);
 
         try
         {
             profilerInstance.execute(cmd);
-            logger.info("Stopped async-profiler.");
+            logger.info("Stopped async-profiler: cmd={}", cmd);
         } catch (IOException e)
         {
             logger.error("Failed to stop async-profiler", e);
@@ -148,9 +157,10 @@ public class AsyncProfilerService
         {
             throw new IllegalArgumentException("Output file name must not be null or empty.");
         }
-        if (Arrays.stream(INVALID_OUTPUT_FILENAME_CHARS).anyMatch(ch -> outputFile.contains(ch.toString())))
+
+        if (!VALID_FILENAME_REGEX_PATTERN.matcher(outputFile).matches())
         {
-            throw new IllegalArgumentException(String.format("Output file name must not contain any invalid characters %s", INVALID_OUTPUT_FILENAME_CHARS.toString()));
+            throw new IllegalArgumentException(String.format("Output file name must match pattern %s", VALID_FILENAME_REGEX_PATTERN));
         }
     }
 }

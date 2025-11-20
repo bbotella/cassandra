@@ -62,6 +62,7 @@ public enum CassandraRelevantProperties
     APPROXIMATE_TIME_PRECISION_MS("cassandra.approximate_time_precision_ms", "2"),
     ASYNC_PROFILER_ADVANCED_MODE("cassandra.async_profiler.advanced_mode", "false"),
     ASYNC_PROFILER_ENABLED("cassandra.async_profiler.enabled", "true"),
+    ASYNC_PROFILER_OUTPUT_DIRECTORY("cassandra.async_profiler.output_directory", "/var/log/cassandra-profiling"),
     /** 2 ** GENSALT_LOG2_ROUNDS rounds of hashing will be performed. */
     AUTH_BCRYPT_GENSALT_LOG2_ROUNDS("cassandra.auth_bcrypt_gensalt_log2_rounds", "4"),
     /** We expect default values on cache retries and interval to be sufficient for everyone but have this escape hatch just in case. */

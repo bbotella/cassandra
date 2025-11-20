@@ -19,14 +19,18 @@
 package org.apache.cassandra.tools;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.tools.profiler.AsyncProfilerService;
 
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_OUTPUT_DIRECTORY;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -38,7 +42,8 @@ public class AsyncProfilerServiceTest
 {
 
     private static AsyncProfilerService profiler;
-    private static String testOutputFile = "/tmp/test-profile.html";
+    private String testOutputFile;
+    private static final String testOutputPath = FileUtils.getTempDir().path();
 
     @BeforeClass
     public static void setUpClass()
@@ -55,6 +60,8 @@ public class AsyncProfilerServiceTest
     public void setUp()
     {
         ASYNC_PROFILER_ENABLED.setBoolean(true);
+        ASYNC_PROFILER_OUTPUT_DIRECTORY.setString(testOutputPath);
+        testOutputFile = UUID.randomUUID().toString();
     }
 
     @After
@@ -62,7 +69,7 @@ public class AsyncProfilerServiceTest
     {
         try
         {
-            profiler.stop();
+            profiler.stop(testOutputFile);
             File outputFile = new File(testOutputFile);
             if (outputFile.exists())
             {
@@ -80,16 +87,17 @@ public class AsyncProfilerServiceTest
     public void testStartAndStopProfiling() {
         try
         {
-            profiler.start("cpu", "flamegraph", 10, testOutputFile);
+            profiler.start("cpu", "flamegraph", 10, testOutputFile + ".html");
             Thread.sleep(2000);
-            profiler.stop();
+            profiler.stop(testOutputFile + ".html");
         }
         catch (Exception e)
         {
             fail("Profiling failed: " + e.getMessage());
         }
 
-        File file = new File(testOutputFile);
+        File file = new File(Path.of(testOutputPath, testOutputFile + ".html").toString());
+
         assertTrue("Output profile file should exist", file.exists());
         assertTrue("Output profile file should not be empty", file.length() > 0);
     }
@@ -130,14 +138,12 @@ public class AsyncProfilerServiceTest
         try
         {
             profiler.start("cpu", "flamegraph", 60, "| grep test");
-            Thread.sleep(5000);
-            profiler.stop();
             fail("Expected RuntimeException due to invalid output file name");
         }
         catch (Exception e)
         {
             assertNotNull(e.getMessage());
-            assertTrue("Invalid output file name", e.getMessage().contains("Output file name must not contain any invalid characters"));
+            assertTrue("Invalid output file name", e.getMessage().contains("Output file name must match pattern"));
         }
     }
 
