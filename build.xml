@@ -828,6 +828,7 @@
             <fileset dir="${fqltool.build.classes}"/>
         </jar>
     </target>
+
     <target name="simulator-jars"
             depends="simulator-asm-build,simulator-bootstrap-build"
             description="Assemble Cassandra JAR files">

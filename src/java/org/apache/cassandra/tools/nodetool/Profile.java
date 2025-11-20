@@ -30,7 +30,7 @@ public class Profile extends AbstractCommand {
     @Option(names = {"-fn", "--filename"}, description = "File Name")
     public String filename = FBUtilities.now().toString() + ".html";
 
-    @Option(names = {"-t", "--timeout"}, description = "Timeout")
+    @Option(names = {"-t", "--timeout"}, description = "Timeout in seconds")
     public int timeout = 60;
 
     @Option(names = {"-f", "--format"}, description = "Output format (flamegraph, tree, traces, etc.)")
@@ -47,7 +47,7 @@ public class Profile extends AbstractCommand {
         try {
             if (start) {
                 System.out.printf("Starting async-profiler: event=%s, format=%s\n", event, outputFormat);
-                profiler.start(event, outputFormat, 60, Path.of(outputFolder, filename).toString());
+                profiler.start(event, outputFormat, timeout, Path.of(outputFolder, filename).toString());
             } else if (stop) {
                 System.out.printf("Stopping profiler\n");
                 profiler.stop();
