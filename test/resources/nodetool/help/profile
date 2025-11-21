@@ -20,6 +20,7 @@ SYNOPSIS
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
                 [(-u <username> | --username <username>)] profile stop
+                [(-o <filename> | --output <filename>)]
 
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
@@ -61,6 +62,8 @@ COMMANDS
             With --format option, Output format (flamegraph, tree, traces, etc.)
         stop
             Stop Async-Profiler on the cassandra process
+
+            With --output option, File Name
         raw
             Execute an arbitrary command on Async-Profiler on the cassandra process
 
