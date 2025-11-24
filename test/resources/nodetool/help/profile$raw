@@ -1,6 +1,6 @@
 NAME
         nodetool profile raw - Execute an arbitrary command on Async-Profiler
-        on the cassandra process
+        on a Cassandra process
 
 SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]

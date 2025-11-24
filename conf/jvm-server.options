@@ -158,8 +158,10 @@
 
 # AsyncProfiler Flags
 #-Dcassandra.async_profiler.enabled=true|false
-#-Dcassandra.async_profiler.advanced_mode=true|false
-#-Dcassandra.async_profiler.output_directory=/tmp/cassandra-profiling
+#-Dcassandra.async_profiler.unsafe_mode=true|false
+# When not set, logs from profiler will be placed under
+# directory behind "cassandra.logdir" property, into "async-profiler" sub-directory
+#-Dcassandra.logdir.async_profiler=/tmp/cassandra-profiling
 
 ### Debug options
 

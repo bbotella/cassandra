@@ -1,5 +1,5 @@
 NAME
-        nodetool profile - Manage Async-Profiler on the cassandra process
+        nodetool profile - Manage Async-Profiler on a Cassandra process
 
 SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
@@ -11,7 +11,7 @@ SYNOPSIS
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
                 [(-u <username> | --username <username>)] profile start
-                [(-e <event> | --event <event>)]
+                [(-e <event> | --event <event>)...]
                 [(-f <outputFormat> | --format <outputFormat>)]
                 [(-o <filename> | --output <filename>)]
                 [(-t <timeout> | --timeout <timeout>)]
@@ -51,20 +51,22 @@ COMMANDS
         With no arguments, Display help information
 
         start
-            Run Async-Profiler on the cassandra process
+            Run Async-Profiler on a Cassandra process
 
-            With --event option, Event to profile (cpu, alloc, lock, wall, etc.)
+            With --event option, Event(s) to profile, one of or combination of 'cpu',
+            'alloc', 'lock', 'wall', 'nativemem', 'cache_misses', delimited by comma.
 
             With --output option, File Name
 
             With --timeout option, Timeout in seconds
 
-            With --format option, Output format (flamegraph, tree, traces, etc.)
+            With --format option, Output format, one of 'flat', 'traces', 'collapsed',
+            'flamegraph', 'tree', 'jfr', 'otlp'
         stop
-            Stop Async-Profiler on the cassandra process
+            Stop Async-Profiler on a Cassandra process
 
             With --output option, File Name
         raw
-            Execute an arbitrary command on Async-Profiler on the cassandra process
+            Execute an arbitrary command on Async-Profiler on a Cassandra process
 
             With --command option, Raw commands to execute

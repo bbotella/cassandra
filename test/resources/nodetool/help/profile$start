@@ -1,22 +1,24 @@
 NAME
-        nodetool profile start - Run Async-Profiler on the cassandra process
+        nodetool profile start - Run Async-Profiler on a Cassandra process
 
 SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
                 [(-u <username> | --username <username>)] profile start
-                [(-e <event> | --event <event>)]
+                [(-e <event> | --event <event>)...]
                 [(-f <outputFormat> | --format <outputFormat>)]
                 [(-o <filename> | --output <filename>)]
                 [(-t <timeout> | --timeout <timeout>)]
 
 OPTIONS
         -e <event>, --event <event>
-            Event to profile (cpu, alloc, lock, wall, etc.)
+            Event(s) to profile, one of or combination of 'cpu', 'alloc',
+            'lock', 'wall', 'nativemem', 'cache_misses', delimited by comma.
 
         -f <outputFormat>, --format <outputFormat>
-            Output format (flamegraph, tree, traces, etc.)
+            Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph',
+            'tree', 'jfr', 'otlp'
 
         -h <host>, --host <host>
             Node hostname or ip address

@@ -18,6 +18,9 @@
 
 package org.apache.cassandra.profiler;
 
+/**
+ * Safe version is unable to execute any command.
+ */
 public class AsyncProfilerSafe extends AsyncProfiler
 {
     public void execute(String command)
