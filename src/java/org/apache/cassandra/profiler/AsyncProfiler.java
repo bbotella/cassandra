@@ -24,9 +24,9 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
     public static final String MBEAN_NAME = "org.apache.cassandra.profiler:type=AsyncProfiler";
     private final AsyncProfilerService service = new AsyncProfilerService();
 
-    public void start(String event, String outputFormat, int timeout, String outputFileName)
+    public void start(String events, String outputFormat, int timeout, String outputFileName)
     {
-        getService().start(event, outputFormat, timeout, outputFileName);
+        getService().start(events, outputFormat, timeout, outputFileName);
     }
 
     public void stop(String outputFileName)
@@ -34,13 +34,31 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
         getService().stop(outputFileName);
     }
 
-    public boolean isAvailable()
+    public boolean isEnabled()
     {
-        return getService().isAvailable();
+        return getService().isEnabled();
     }
 
     public AsyncProfilerService getService()
     {
         return service;
+    }
+
+    @Override
+    public void disable()
+    {
+        if (!isEnabled())
+            return;
+
+        getService().disable();
+    }
+
+    @Override
+    public void enable()
+    {
+        if (isEnabled())
+            return;
+
+        getService().enable();
     }
 }

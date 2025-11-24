@@ -18,6 +18,9 @@
 
 package org.apache.cassandra.profiler;
 
+/**
+ * Unsafe version is able to execute arbitrary commands.
+ */
 public class AsyncProfilerUnsafe extends AsyncProfiler
 {
     public void execute(String command)

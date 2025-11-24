@@ -22,45 +22,41 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.Test;
 
 import org.apache.cassandra.io.util.FileUtils;
+import org.apache.cassandra.profiler.AsyncProfiler;
+import org.apache.cassandra.profiler.AsyncProfilerSafe;
+import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
 import org.apache.cassandra.tools.profiler.AsyncProfilerService;
 
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_OUTPUT_DIRECTORY;
-import static org.junit.Assert.assertNotNull;
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ADVANCED_MODE;
-
 public class AsyncProfilerServiceTest
 {
-
-    private static AsyncProfilerService profiler;
-    private String testOutputFile;
     private static final String testOutputPath = FileUtils.getTempDir().path();
+
+    private AsyncProfilerService profilerService;
+    private String testOutputFile;
 
     @BeforeClass
     public static void setUpClass()
     {
-        profiler = new AsyncProfilerService();
-
-        if (!profiler.isAvailable())
-        {
-            fail("AsyncProfilerService could not initialize (native lib not found or invalid).");
-        }
+        ASYNC_PROFILER_LOG_DIR.setString(testOutputPath);
     }
 
     @Before
     public void setUp()
     {
         ASYNC_PROFILER_ENABLED.setBoolean(true);
-        ASYNC_PROFILER_OUTPUT_DIRECTORY.setString(testOutputPath);
         testOutputFile = UUID.randomUUID().toString();
     }
 
@@ -69,7 +65,8 @@ public class AsyncProfilerServiceTest
     {
         try
         {
-            profiler.stop(testOutputFile);
+            profilerService.stop(testOutputFile);
+            profilerService.disable();
             File outputFile = new File(testOutputFile);
             if (outputFile.exists())
             {
@@ -81,20 +78,31 @@ public class AsyncProfilerServiceTest
             // The only meaningful exception that can surface here is if profiler.start
             // was not called prior to profiler.stop, we can safely ignore this.
         }
+
+        profilerService = null;
+    }
+
+    private AsyncProfilerService getProfilerService()
+    {
+        AsyncProfiler profiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
+        profilerService = profiler.getService();
+        profilerService.getProfilerInstance();
+
+        if (!profilerService.isEnabled())
+        {
+            fail("AsyncProfilerService could not initialize (native lib not found or invalid).");
+        }
+
+        return profilerService;
     }
 
     @Test
-    public void testStartAndStopProfiling() {
-        try
-        {
-            profiler.start("cpu", "flamegraph", 10, testOutputFile + ".html");
-            Thread.sleep(2000);
-            profiler.stop(testOutputFile + ".html");
-        }
-        catch (Exception e)
-        {
-            fail("Profiling failed: " + e.getMessage());
-        }
+    public void testStartAndStopProfiling() throws Throwable
+    {
+        AsyncProfilerService service = getProfilerService();
+        service.start("cpu", "flamegraph", 10, testOutputFile + ".html");
+        Thread.sleep(2000);
+        service.stop(testOutputFile + ".html");
 
         File file = new File(Path.of(testOutputPath, testOutputFile + ".html").toString());
 
@@ -105,94 +113,68 @@ public class AsyncProfilerServiceTest
     @Test
     public void testInvalidEventThrowsException()
     {
-        try
-        {
-            profiler.start("not_a_real_event", "flamegraph", 60, testOutputFile);
-            fail("Expected RuntimeException due to invalid event");
-        }
-        catch (RuntimeException e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("Invalid event should not start profiler", e.getMessage().contains("Event must be one or a combination of"));
-        }
+        AsyncProfilerService service = getProfilerService();
+        assertThatThrownBy(() -> service.start("not_a_real_event", "flamegraph", 60, testOutputFile))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Event must be one or a combination of [cpu, alloc, lock, wall, nativemem, cache_misses]");
     }
 
     @Test
     public void testInvalidFormatThrowsException()
     {
-        try
-        {
-            profiler.start("cpu", "not_a_real_format", 60, testOutputFile);
-            fail("Expected RuntimeException due to invalid format");
-        }
-        catch (RuntimeException e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("Invalid format should not start profiler", e.getMessage().contains("Format must be one or a combination of"));
-        }
+        AsyncProfilerService service = getProfilerService();
+
+        assertThatThrownBy(() -> service.start("cpu", "not_a_real_format", 60, testOutputFile))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Format must be one of [flat, traces, collapsed, flamegraph, tree, jfr, otlp]");
     }
 
     @Test
     public void testInvalidOutputFileNameThrowsException()
     {
-        try
-        {
-            profiler.start("cpu", "flamegraph", 60, "| grep test");
-            fail("Expected RuntimeException due to invalid output file name");
-        }
-        catch (Exception e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("Invalid output file name", e.getMessage().contains("Output file name must match pattern"));
-        }
+        AsyncProfilerService service = getProfilerService();
+
+        assertThatThrownBy(() -> service.start("cpu",
+                                               "flamegraph",
+                                               60,
+                                               "| grep test"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Output file name must match pattern ^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
     }
 
     @Test
     public void testMultipleStartCallsThrowsException()
     {
-        try
-        {
-            profiler.start("cpu", "flamegraph", 60, testOutputFile);
-            profiler.start("cpu", "flamegraph", 60, testOutputFile);
-            fail("Expected IllegalStateException due to multiple start calls");
-        }
-        catch (IllegalStateException e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("Process should not start another profiling job", e.getMessage().contains("Profiler already started"));
-        }
+        AsyncProfilerService service = getProfilerService();
+
+        assertThatThrownBy(() -> {
+            service.start("cpu", "flamegraph", 60, testOutputFile);
+            service.start("cpu", "flamegraph", 60, testOutputFile);
+        }).isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("Profiler already started");
     }
 
     @Test
     public void testProfilerDisabledThrowsException()
     {
-        try
-        {
-            ASYNC_PROFILER_ENABLED.setBoolean(false);
-            profiler.execute(String.format("start,event=cpu"));
-            fail("Expected IllegalStateException due to disabled profiler");
-        }
-        catch (IllegalStateException e)
-        {
-            assertNotNull(e.getMessage());
-            assertTrue("ASYNC_PROFILER_ENABLED is false", e.getMessage().contains("async-profiler is not enabled."));
-        }
+        AsyncProfilerService service = getProfilerService();
+
+        assertThatThrownBy(() -> {
+            service.disable();
+            service.execute("start,event=cpu");
+        }).isInstanceOf(IllegalStateException.class)
+          .hasMessageContaining("Async-Profiler is not enabled.");
     }
 
     @Test
-    public void testAdvancedModeEnabledSuccess()
+    public void testAdvancedModeEnabledSuccess() throws Throwable
     {
-        try
-        {
-            ASYNC_PROFILER_ADVANCED_MODE.setBoolean(true);
-            profiler.execute(String.format("start,event=cpu"));
-            Thread.sleep(5000);
-            profiler.execute(String.format("stop,file=%s", testOutputFile));
-        }
-        catch (Exception e)
-        {
-            fail("Profiling failed: " + e.getMessage());
-        }
+        ASYNC_PROFILER_UNSAFE_MODE.setBoolean(true);
+        AsyncProfilerService asyncProfiler = getProfilerService();
+
+        asyncProfiler.execute("start,event=cpu");
+        Thread.sleep(5000);
+        asyncProfiler.execute(String.format("stop,file=%s", testOutputFile));
 
         File file = new File(testOutputFile);
         assertTrue("Output profile file for advanced mode should exist", file.exists());

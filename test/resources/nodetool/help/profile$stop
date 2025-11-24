@@ -1,5 +1,5 @@
 NAME
-        nodetool profile stop - Stop Async-Profiler on the cassandra process
+        nodetool profile stop - Stop Async-Profiler on a Cassandra process
 
 SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
