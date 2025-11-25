@@ -221,6 +221,14 @@ public class AsyncProfilerService
         }
     }
 
+    public void purge()
+    {
+        if (!isEnabled())
+            return;
+
+        new File(logDir).deleteRecursive();
+    }
+
     public boolean isEnabled()
     {
         return profilerInstance != null;

@@ -55,6 +55,12 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
         service.enable();
     }
 
+    @Override
+    public void purge()
+    {
+        service.purge();
+    }
+
     public void initialize()
     {
         service.maybeInitialize();

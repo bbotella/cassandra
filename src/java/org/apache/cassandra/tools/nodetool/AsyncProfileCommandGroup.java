@@ -40,7 +40,8 @@ import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateT
 subcommands = {
 AsyncProfileCommandGroup.AsyncProfileStartCommand.class,
 AsyncProfileCommandGroup.AsyncProfileStopCommand.class,
-AsyncProfileCommandGroup.AsyncProfileRawCommand.class
+AsyncProfileCommandGroup.AsyncProfileRawCommand.class,
+AsyncProfileCommandGroup.AsyncProfilePurgeCommand.class
 })
 public class AsyncProfileCommandGroup extends AbstractCommand
 {
@@ -90,9 +91,9 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         {
             doWithProfiler(probe, profiler -> {
                 boolean started = profiler.start(event.stream().map(Enum::name).collect(joining(",")),
-                                               outputFormat.name(),
-                                               validateTimeout(timeout),
-                                               validateOutputFileName(filename));
+                                                 outputFormat.name(),
+                                                 validateTimeout(timeout),
+                                                 validateOutputFileName(filename));
                 if (!started)
                 {
                     probe.output().err.println("Profiler has already started or there was a failure to start it.");
@@ -137,6 +138,16 @@ public class AsyncProfileCommandGroup extends AbstractCommand
                 String result = profiler.execute(validateCommand(command));
                 probe.output().out.println(result);
             });
+        }
+    }
+
+    @Command(name = "purge", description = "Remove all profiling results from node's disk")
+    public static class AsyncProfilePurgeCommand extends AbstractCommand
+    {
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            doWithProfiler(probe, profiler -> profiler.purge());
         }
     }
 }

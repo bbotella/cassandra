@@ -67,4 +67,9 @@ public interface AsyncProfilerMBean
      * Enables Async-Profiler, if not already enabled.
      */
     void enable();
+
+    /**
+     * Removes all profile files from disk.
+     */
+    void purge();
 }
