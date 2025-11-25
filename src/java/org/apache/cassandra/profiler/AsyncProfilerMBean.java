@@ -31,22 +31,25 @@ public interface AsyncProfilerMBean
      * @param outputFormat   output format, has to be one of enum names of {@link AsyncProfilerFormat}
      * @param timeout        timeout, has to be strictly positive
      * @param outputFileName file name to save results to
+     * @return true if profiling has started, false when not (e.g. when it was started already)
      */
-    void start(String events, String outputFormat, int timeout, String outputFileName);
+    boolean start(String events, String outputFormat, int timeout, String outputFileName);
 
     /**
      * Stops profiling.
      *
      * @param outputFileName file name to save results to
+     * @return true if profiling was stopped
      */
-    void stop(String outputFileName);
+    boolean stop(String outputFileName);
 
     /**
      * Executes a command.
      *
      * @param command command to execute.
+     * @return execution result
      */
-    void execute(String command);
+    String execute(String command);
 
     /**
      * Checks if a profiler is available.
