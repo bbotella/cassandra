@@ -147,7 +147,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         @Override
         protected void execute(NodeProbe probe)
         {
-            doWithProfiler(probe, profiler -> profiler.purge());
+            doWithProfiler(probe, AsyncProfilerMBean::purge);
         }
     }
 }

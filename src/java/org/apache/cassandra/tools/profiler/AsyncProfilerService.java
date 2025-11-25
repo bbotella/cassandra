@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 
 import one.profiler.AsyncProfiler;
 import org.apache.cassandra.config.CassandraRelevantProperties;
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.File;
+import org.apache.cassandra.service.StorageService;
 
 import static java.lang.String.format;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
@@ -131,11 +133,13 @@ public class AsyncProfilerService
         if (!ASYNC_PROFILER_ENABLED.getBoolean())
             throw new IllegalStateException("Async-Profiler is not enabled.");
 
+        // if somebody removes dir while a node runs, just recreate it
+        createLogDir();
+
         if (profilerInstance == null)
         {
             try
             {
-                createLogDir();
                 profilerInstance = one.profiler.AsyncProfiler.getInstance();
             }
             catch (ConfigurationException ex)
@@ -147,9 +151,6 @@ public class AsyncProfilerService
                 throw new IllegalStateException("Unable to get an instance of Async-Profiler", t);
             }
         }
-
-        // if somebody removes dir while a node runs, just recreate it
-        createLogDir();
 
         return profilerInstance;
     }
@@ -275,6 +276,25 @@ public class AsyncProfilerService
         else
         {
             logDir = logDirPropertyValue;
+        }
+
+        String dir = new File(logDir).toAbsolute().toString();
+
+        if ((DatabaseDescriptor.getCommitLogLocation() != null && dir.startsWith(DatabaseDescriptor.getCommitLogLocation())) ||
+            (DatabaseDescriptor.getAccordJournalDirectory() != null && dir.startsWith(DatabaseDescriptor.getAccordJournalDirectory())) ||
+            dir.startsWith(DatabaseDescriptor.getHintsDirectory().absolutePath()) ||
+            (DatabaseDescriptor.getCDCLogLocation() != null && dir.startsWith(DatabaseDescriptor.getCDCLogLocation())) ||
+            (DatabaseDescriptor.getSavedCachesLocation() != null && dir.startsWith(DatabaseDescriptor.getSavedCachesLocation())))
+        {
+            throw new ConfigurationException("You can not store Async-Profiler results into system Cassandra directory.");
+        }
+
+        for (String location : StorageService.instance.getAllDataFileLocations())
+        {
+            if (dir.startsWith(location))
+            {
+                throw new ConfigurationException("You can not store Async-Profiler results into a data directory of Cassandra.");
+            }
         }
 
         try
