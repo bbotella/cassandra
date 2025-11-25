@@ -40,7 +40,8 @@ import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateT
 subcommands = {
 AsyncProfileCommandGroup.AsyncProfileStartCommand.class,
 AsyncProfileCommandGroup.AsyncProfileStopCommand.class,
-AsyncProfileCommandGroup.AsyncProfileRawCommand.class
+AsyncProfileCommandGroup.AsyncProfileRawCommand.class,
+AsyncProfileCommandGroup.AsyncProfilePurgeCommand.class
 })
 public class AsyncProfileCommandGroup extends AbstractCommand
 {
@@ -60,7 +61,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         if (!profiler.isEnabled())
         {
             probe.output().err.println("Async-profiler native library is not loaded or unavailable.");
-            System.exit(-1);
+            System.exit(1);
         }
 
         consumer.accept(profiler);
@@ -86,12 +87,19 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public AsyncProfilerFormat outputFormat = AsyncProfilerFormat.flamegraph;
 
         @Override
-        protected void execute(NodeProbe probe)
+        public void execute(NodeProbe probe)
         {
-            doWithProfiler(probe, profiler -> profiler.start(event.stream().map(Enum::name).collect(joining(",")),
-                                                             outputFormat.name(),
-                                                             validateTimeout(timeout),
-                                                             validateOutputFileName(filename)));
+            doWithProfiler(probe, profiler -> {
+                boolean started = profiler.start(event.stream().map(Enum::name).collect(joining(",")),
+                                                 outputFormat.name(),
+                                                 validateTimeout(timeout),
+                                                 validateOutputFileName(filename));
+                if (!started)
+                {
+                    probe.output().err.println("Profiler has already started or there was a failure to start it.");
+                    System.exit(1);
+                }
+            });
         }
     }
 
@@ -103,9 +111,17 @@ public class AsyncProfileCommandGroup extends AbstractCommand
                                                   .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
 
         @Override
-        protected void execute(NodeProbe probe)
+        public void execute(NodeProbe probe)
         {
-            AsyncProfileCommandGroup.doWithProfiler(probe, profiler -> profiler.stop(validateOutputFileName(filename)));
+            doWithProfiler(probe, profiler -> {
+                boolean stopped = profiler.stop(validateOutputFileName(filename));
+
+                if (!stopped)
+                {
+                    probe.output().err.println("Profiler has already stopped or there was a failure to stop it.");
+                    System.exit(1);
+                }
+            });
         }
     }
 
@@ -116,9 +132,22 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public String command;
 
         @Override
+        public void execute(NodeProbe probe)
+        {
+            doWithProfiler(probe, profiler -> {
+                String result = profiler.execute(validateCommand(command));
+                probe.output().out.println(result);
+            });
+        }
+    }
+
+    @Command(name = "purge", description = "Remove all profiling results from node's disk")
+    public static class AsyncProfilePurgeCommand extends AbstractCommand
+    {
+        @Override
         protected void execute(NodeProbe probe)
         {
-            AsyncProfileCommandGroup.doWithProfiler(probe, profiler -> profiler.execute(validateCommand(command)));
+            doWithProfiler(probe, profiler -> profiler.purge());
         }
     }
 }

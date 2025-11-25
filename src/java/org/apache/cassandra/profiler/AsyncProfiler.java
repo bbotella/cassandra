@@ -17,48 +17,52 @@
  */
 
 package org.apache.cassandra.profiler;
+
 import org.apache.cassandra.tools.profiler.AsyncProfilerService;
 
 public abstract class AsyncProfiler implements AsyncProfilerMBean
 {
     public static final String MBEAN_NAME = "org.apache.cassandra.profiler:type=AsyncProfiler";
-    private final AsyncProfilerService service = new AsyncProfilerService();
+    protected final AsyncProfilerService service = new AsyncProfilerService();
 
-    public void start(String events, String outputFormat, int timeout, String outputFileName)
+    @Override
+    public boolean start(String events, String outputFormat, int timeout, String outputFileName)
     {
-        getService().start(events, outputFormat, timeout, outputFileName);
+        return service.start(events, outputFormat, timeout, outputFileName);
     }
 
-    public void stop(String outputFileName)
+    @Override
+    public boolean stop(String outputFileName)
     {
-        getService().stop(outputFileName);
+        return service.stop(outputFileName);
     }
 
+    @Override
     public boolean isEnabled()
     {
-        return getService().isEnabled();
-    }
-
-    public AsyncProfilerService getService()
-    {
-        return service;
+        return service.isEnabled();
     }
 
     @Override
     public void disable()
     {
-        if (!isEnabled())
-            return;
-
-        getService().disable();
+        service.disable();
     }
 
     @Override
     public void enable()
     {
-        if (isEnabled())
-            return;
+        service.enable();
+    }
 
-        getService().enable();
+    @Override
+    public void purge()
+    {
+        service.purge();
+    }
+
+    public void initialize()
+    {
+        service.maybeInitialize();
     }
 }

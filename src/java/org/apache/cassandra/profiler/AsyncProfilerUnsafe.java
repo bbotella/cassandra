@@ -23,8 +23,9 @@ package org.apache.cassandra.profiler;
  */
 public class AsyncProfilerUnsafe extends AsyncProfiler
 {
-    public void execute(String command)
+    @Override
+    public String execute(String command)
     {
-        getService().execute(command);
+        return service.execute(command);
     }
 }

@@ -816,10 +816,11 @@ public class CassandraDaemon
     {
         if (ASYNC_PROFILER_ENABLED.getBoolean())
         {
-            AsyncProfiler asyncProfiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
             try
             {
-                asyncProfiler.getService().getProfilerInstance();
+                AsyncProfiler asyncProfiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
+                asyncProfiler.initialize();
+                
                 MBeanWrapper.instance.registerMBean(new StandardMBean(asyncProfiler, AsyncProfilerMBean.class),
                                                     AsyncProfiler.MBEAN_NAME,
                                                     MBeanWrapper.OnException.LOG);

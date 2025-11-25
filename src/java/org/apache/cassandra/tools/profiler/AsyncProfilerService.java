@@ -18,9 +18,6 @@
 
 package org.apache.cassandra.tools.profiler;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -109,33 +106,7 @@ public class AsyncProfilerService
 
     private AsyncProfiler profilerInstance;
 
-    private final String logDir;
-
-    /**
-     * @throws ConfigurationException in case it is not possible to configure directory for logs.
-     */
-    public AsyncProfilerService() throws ConfigurationException
-    {
-        String logDirPropertyValue = ASYNC_PROFILER_LOG_DIR.getString();
-        if (logDirPropertyValue == null)
-        {
-            String globalLogDir = CassandraRelevantProperties.LOG_DIR.getString();
-            logDir = Paths.get(globalLogDir, "async-profiler").toString();
-        }
-        else
-        {
-            logDir = logDirPropertyValue;
-        }
-
-        try
-        {
-            new File(logDir).createDirectoriesIfNotExists();
-        }
-        catch (Throwable t)
-        {
-            throw new ConfigurationException("Unable to create directory " + logDir);
-        }
-    }
+    private String logDir;
 
     public synchronized void enable()
     {
@@ -143,7 +114,7 @@ public class AsyncProfilerService
             return;
 
         ASYNC_PROFILER_ENABLED.setBoolean(true);
-        getProfilerInstance();
+        maybeInitialize();
     }
 
     public synchronized void disable()
@@ -155,7 +126,7 @@ public class AsyncProfilerService
         profilerInstance = null;
     }
 
-    public synchronized AsyncProfiler getProfilerInstance()
+    public synchronized AsyncProfiler maybeInitialize()
     {
         if (!ASYNC_PROFILER_ENABLED.getBoolean())
             throw new IllegalStateException("Async-Profiler is not enabled.");
@@ -164,7 +135,12 @@ public class AsyncProfilerService
         {
             try
             {
+                createLogDir();
                 profilerInstance = one.profiler.AsyncProfiler.getInstance();
+            }
+            catch (ConfigurationException ex)
+            {
+                throw ex;
             }
             catch (Throwable t)
             {
@@ -172,56 +148,85 @@ public class AsyncProfilerService
             }
         }
 
+        // if somebody removes dir while a node runs, just recreate it
+        createLogDir();
+
         return profilerInstance;
     }
 
-    public void start(String events, String outputFormat, int timeout, String outputFileName)
+    public synchronized boolean start(String events, String outputFormat, int timeout, String outputFileName)
     {
+        if (isRunning())
+            return false;
+
         try
         {
             String cmd = format("start,%s,event=%s,timeout=%s,file=%s",
                                 AsyncProfilerFormat.parseFormat(outputFormat),
                                 AsyncProfilerEvent.parseEvents(events),
                                 validateTimeout(timeout),
-                                Path.of(logDir, validateOutputFileName(outputFileName)));
+                                new File(logDir, validateOutputFileName(outputFileName)));
 
-            getProfilerInstance().execute(cmd);
-            logger.info("Started Async-Profiler: cmd={}", cmd);
+            String result = maybeInitialize().execute(cmd);
+            logger.debug("Started Async-Profiler: result={}, cmd={}", result, cmd);
+            return true;
         }
-        catch (IOException e)
+        catch (IllegalStateException | IllegalArgumentException ex)
         {
-            logger.error("Failed to start Async-Profiler", e);
-            throw new RuntimeException(e);
+            throw ex;
+        }
+        catch (Throwable t)
+        {
+            logger.error("Failed to start Async-Profiler", t);
+            return false;
         }
     }
 
-    public void stop(String outputFileName)
+    public synchronized boolean stop(String outputFileName)
     {
-        String cmd = "stop,file=" + Path.of(logDir, validateOutputFileName(outputFileName));
+        if (!isRunning())
+            return false;
 
         try
         {
-            getProfilerInstance().execute(cmd);
-            logger.info("Stopped Async-Profiler: cmd={}", cmd);
-        } catch (IOException e)
+            File outputFile = new File(logDir, validateOutputFileName(outputFileName));
+            String cmd = "stop,file=" + outputFile.absolutePath();
+            String result = maybeInitialize().execute(cmd);
+            logger.debug("Stopped Async-Profiler: result={}, cmd={}", result, cmd);
+            return true;
+        }
+        catch (IllegalStateException | IllegalArgumentException e)
+        {
+            throw e;
+        }
+        catch (Throwable e)
         {
             logger.error("Failed to stop Async-Profiler", e);
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
-    public void execute(String command)
+    public String execute(String command)
     {
         try
         {
-            getProfilerInstance().execute(validateCommand(command));
-            logger.info("Executed raw Async-Profiler command {}", command);
+            String result = maybeInitialize().execute(validateCommand(command));
+            logger.debug("Executed raw command in Async-Profiler: result={}, cmd={}", result, command);
+            return result;
         }
-        catch (IOException e)
+        catch (Throwable e)
         {
             logger.error("Failed to execute raw Async-Profiler command {}", command, e);
             throw new RuntimeException(e);
         }
+    }
+
+    public void purge()
+    {
+        if (!isEnabled())
+            return;
+
+        new File(logDir).deleteRecursive();
     }
 
     public boolean isEnabled()
@@ -254,5 +259,47 @@ public class AsyncProfilerService
             throw new IllegalArgumentException("Timeout can not be negative or zero.");
 
         return timeout;
+    }
+
+    /**
+     * @throws ConfigurationException in case it is not possible to configure directory for logs.
+     */
+    private void createLogDir() throws ConfigurationException
+    {
+        String logDirPropertyValue = ASYNC_PROFILER_LOG_DIR.getString();
+        if (logDirPropertyValue == null)
+        {
+            String globalLogDir = CassandraRelevantProperties.LOG_DIR.getString();
+            logDir = File.getPath(globalLogDir, "async-profiler").toAbsolutePath().toString();
+        }
+        else
+        {
+            logDir = logDirPropertyValue;
+        }
+
+        try
+        {
+            new File(logDir).createDirectoriesIfNotExists();
+        }
+        catch (Throwable t)
+        {
+            throw new ConfigurationException("Unable to create directory " + logDir);
+        }
+    }
+
+    private boolean isRunning()
+    {
+        if (!isEnabled())
+            return false;
+
+        try
+        {
+            String status = maybeInitialize().execute("status");
+            return status != null && status.contains("Profiling is running");
+        }
+        catch (Throwable t)
+        {
+            throw new RuntimeException(t);
+        }
     }
 }
