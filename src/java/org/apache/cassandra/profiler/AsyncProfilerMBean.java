@@ -18,6 +18,8 @@
 
 package org.apache.cassandra.profiler;
 
+import java.util.List;
+
 import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerEvent;
 import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerFormat;
 
@@ -72,4 +74,19 @@ public interface AsyncProfilerMBean
      * Removes all profile files from disk.
      */
     void purge();
+
+    /**
+     * Returns list of files where profiler was saving results.
+     *
+     * @return list of profiler result files
+     */
+    List<String> list();
+
+    /**
+     * Returns the content of a result file. Use {@link #list()} to get their names.
+     *
+     * @param resultFile file with profiler results
+     * @return content of profiler resuls file, as string, null when not found
+     */
+    String fetch(String resultFile);
 }

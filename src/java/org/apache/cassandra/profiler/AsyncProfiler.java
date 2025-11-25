@@ -18,6 +18,8 @@
 
 package org.apache.cassandra.profiler;
 
+import java.util.List;
+
 import org.apache.cassandra.tools.profiler.AsyncProfilerService;
 
 public abstract class AsyncProfiler implements AsyncProfilerMBean
@@ -59,6 +61,18 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
     public void purge()
     {
         service.purge();
+    }
+
+    @Override
+    public List<String> list()
+    {
+        return service.list();
+    }
+
+    @Override
+    public String fetch(String resultFile)
+    {
+        return service.fetch(resultFile);
     }
 
     public void initialize()

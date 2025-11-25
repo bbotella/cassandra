@@ -18,13 +18,17 @@
 
 package org.apache.cassandra.tools;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.distributed.shared.WithProperties;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
@@ -38,6 +42,7 @@ import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROF
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class AsyncProfilerServiceTest
@@ -51,6 +56,7 @@ public class AsyncProfilerServiceTest
     public static void setUpClass()
     {
         ASYNC_PROFILER_LOG_DIR.setString(testOutputPath);
+        DatabaseDescriptor.daemonInitialization();
     }
 
     @Before
@@ -96,6 +102,14 @@ public class AsyncProfilerServiceTest
 
         assertTrue("Output profile file should exist", testOutputFile.exists());
         assertTrue("Output profile file should not be empty", testOutputFile.length() > 0);
+
+        List<String> list = profiler.list();
+        assertFalse(list.isEmpty());
+
+        Optional<String> resultFile = list.stream().filter(f -> f.equals(testOutputFile.name())).findFirst();
+        assertTrue(resultFile.isPresent());
+        String fetch = profiler.fetch(resultFile.get());
+        assertNotNull(fetch);
     }
 
     @Test
