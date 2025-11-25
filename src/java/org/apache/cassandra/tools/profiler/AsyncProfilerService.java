@@ -18,7 +18,9 @@
 
 package org.apache.cassandra.tools.profiler;
 
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -34,6 +36,7 @@ import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.service.StorageService;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
 
@@ -222,11 +225,32 @@ public class AsyncProfilerService
         }
     }
 
+    public List<String> list()
+    {
+        try
+        {
+            return Arrays.stream(new File(logDir).list()).map(File::name).sorted().collect(toList());
+        }
+        catch (Throwable t)
+        {
+            return List.of();
+        }
+    }
+
+    public String fetch(String resultFile)
+    {
+        try
+        {
+            return Files.readString(new File(logDir, resultFile).toPath());
+        }
+        catch (Throwable t)
+        {
+            return null;
+        }
+    }
+
     public void purge()
     {
-        if (!isEnabled())
-            return;
-
         new File(logDir).deleteRecursive();
     }
 

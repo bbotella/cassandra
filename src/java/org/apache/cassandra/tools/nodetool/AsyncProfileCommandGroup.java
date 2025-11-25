@@ -23,6 +23,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.cassandra.io.util.File;
+import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerEvent;
@@ -30,7 +32,11 @@ import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerFor
 import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.joining;
 import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateCommand;
 import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateOutputFileName;
@@ -41,7 +47,9 @@ subcommands = {
 AsyncProfileCommandGroup.AsyncProfileStartCommand.class,
 AsyncProfileCommandGroup.AsyncProfileStopCommand.class,
 AsyncProfileCommandGroup.AsyncProfileRawCommand.class,
-AsyncProfileCommandGroup.AsyncProfilePurgeCommand.class
+AsyncProfileCommandGroup.AsyncProfilePurgeCommand.class,
+AsyncProfileCommandGroup.AsyncProfileListCommand.class,
+AsyncProfileCommandGroup.AsyncProfileFetchCommand.class
 })
 public class AsyncProfileCommandGroup extends AbstractCommand
 {
@@ -90,13 +98,12 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                boolean started = profiler.start(event.stream().map(Enum::name).collect(joining(",")),
-                                                 outputFormat.name(),
-                                                 validateTimeout(timeout),
-                                                 validateOutputFileName(filename));
-                if (!started)
+                if (!profiler.start(event.stream().map(Enum::name).collect(joining(",")),
+                                    outputFormat.name(),
+                                    validateTimeout(timeout),
+                                    validateOutputFileName(filename)))
                 {
-                    probe.output().err.println("Profiler has already started or there was a failure to start it.");
+                    output.err.println("Profiler has already started or there was a failure to start it.");
                     System.exit(1);
                 }
             });
@@ -114,11 +121,9 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                boolean stopped = profiler.stop(validateOutputFileName(filename));
-
-                if (!stopped)
+                if (!profiler.stop(validateOutputFileName(filename)))
                 {
-                    probe.output().err.println("Profiler has already stopped or there was a failure to stop it.");
+                    output.err.println("Profiler has already stopped or there was a failure to stop it.");
                     System.exit(1);
                 }
             });
@@ -135,8 +140,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                String result = profiler.execute(validateCommand(command));
-                probe.output().out.println(result);
+                output.out.println(profiler.execute(validateCommand(command)));
             });
         }
     }
@@ -148,6 +152,44 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         protected void execute(NodeProbe probe)
         {
             doWithProfiler(probe, AsyncProfilerMBean::purge);
+        }
+    }
+
+    @Command(name = "list", description = "List profiling result files of a node")
+    public static class AsyncProfileListCommand extends AbstractCommand
+    {
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            doWithProfiler(probe, profiler -> {
+                for (String resultFile : profiler.list())
+                    output.out.println(resultFile);
+            });
+        }
+    }
+
+    @Command(name = "fetch", description = "Copy profiler result file from node to a local file")
+    public static class AsyncProfileFetchCommand extends AbstractCommand
+    {
+        @Parameters(index = "0", description = "Remote profiler file name", arity = "1")
+        private String remoteFile;
+
+        @Parameters(index = "1", description = "Local file name", arity = "1")
+        private String localFile;
+
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            doWithProfiler(probe, profiler -> {
+                String content = profiler.fetch(remoteFile);
+                if (content != null)
+                    FileUtils.write(new File(localFile), List.of(content), CREATE, TRUNCATE_EXISTING, WRITE);
+                else
+                {
+                    output.out.println("File " + remoteFile + " does not exist.");
+                    System.exit(1);
+                }
+            });
         }
     }
 }
