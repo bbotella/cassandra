@@ -148,10 +148,6 @@ public class AsyncProfilerService
             {
                 profilerInstance = one.profiler.AsyncProfiler.getInstance();
             }
-            catch (ConfigurationException ex)
-            {
-                throw ex;
-            }
             catch (Throwable t)
             {
                 throw new IllegalStateException("Unable to get an instance of Async-Profiler", t);

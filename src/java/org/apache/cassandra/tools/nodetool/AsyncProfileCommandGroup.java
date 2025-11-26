@@ -27,9 +27,9 @@ import java.util.function.Consumer;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
-import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
+import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -64,7 +64,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         cmd.run();
     }
 
-    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer, boolean requiresEnabledProfiler)
+    private static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer, boolean requiresEnabledProfiler)
     {
         AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
 
@@ -75,6 +75,21 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         }
 
         consumer.accept(profiler);
+    }
+
+    private static String getOutputFileName(AsyncProfilerFormat outputFormat)
+    {
+        String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
+                                           .withZone(ZoneId.systemDefault()).format(FBUtilities.now());
+
+        if (outputFormat == AsyncProfilerFormat.jfr)
+            filename += ".jfr";
+        else if (outputFormat == AsyncProfilerFormat.otlp)
+            filename += ".otlp";
+        else
+            filename += ".html";
+
+        return filename;
     }
 
     public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer)
@@ -92,8 +107,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
 
         @Option(names = { "-o", "--output" }, description = "File name to save profiling results into, defaults to a " +
                                                             "file of name 'yyyy-MM-dd-HH-mm-ss.html'")
-        public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
-                                                  .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
+        public String filename;
 
         @Option(names = { "-d", "--duration" }, description = "Duration of profiling, defaults to '60s'. Accepts string values " +
                                                               "in the form of '5m', '30s' and similar.")
@@ -108,6 +122,9 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         {
             // make sure it is valid
             parseDuration(duration);
+
+            if (filename == null)
+                filename = AsyncProfileCommandGroup.getOutputFileName(outputFormat);
 
             doWithProfiler(probe, profiler -> {
                 if (!profiler.start(event.stream().map(Enum::name).collect(joining(",")),
