@@ -91,7 +91,7 @@ public class AsyncProfilerService
 
     public enum AsyncProfilerFormat
     {
-        flat, traces, collapsed, flamegraph, tree, jfr, otlp;
+        flat, traces, collapsed, flamegraph, tree, jfr;
 
         public static String parseFormat(String rawFormat)
         {

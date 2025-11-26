@@ -84,8 +84,6 @@ public class AsyncProfileCommandGroup extends AbstractCommand
 
         if (outputFormat == AsyncProfilerFormat.jfr)
             filename += ".jfr";
-        else if (outputFormat == AsyncProfilerFormat.otlp)
-            filename += ".otlp";
         else
             filename += ".html";
 
@@ -114,7 +112,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         public String duration = "60s";
 
         @Option(names = { "-f", "--format" },
-        description = "Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph', 'tree', 'jfr', 'otlp', defaults to 'flamegraph'")
+        description = "Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph', 'tree', 'jfr', defaults to 'flamegraph'")
         public AsyncProfilerFormat outputFormat = AsyncProfilerFormat.flamegraph;
 
         @Override
