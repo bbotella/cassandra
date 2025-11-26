@@ -1,18 +1,13 @@
 NAME
-        nodetool profile raw - Execute an arbitrary command on Async-Profiler
-        on a Cassandra process
+        nodetool profile status - Get status of profiling
 
 SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
-                [(-u <username> | --username <username>)] profile raw
-                [(-c <command> | --command <command>)]
+                [(-u <username> | --username <username>)] profile status
 
 OPTIONS
-        -c <command>, --command <command>
-            Raw commands to execute
-
         -h <host>, --host <host>
             Node hostname or ip address
 

@@ -60,7 +60,7 @@ public enum CassandraRelevantProperties
     ALLOW_UNSAFE_REPLACE("cassandra.allow_unsafe_replace"),
     ALLOW_UNSAFE_TRANSIENT_CHANGES("cassandra.allow_unsafe_transient_changes"),
     APPROXIMATE_TIME_PRECISION_MS("cassandra.approximate_time_precision_ms", "2"),
-    ASYNC_PROFILER_ENABLED("cassandra.async_profiler.enabled", "true"),
+    ASYNC_PROFILER_ENABLED("cassandra.async_profiler.enabled", "false"),
     ASYNC_PROFILER_LOG_DIR("cassandra.logdir.async_profiler"),
     ASYNC_PROFILER_UNSAFE_MODE("cassandra.async_profiler.unsafe_mode", "false"),
     /** 2 ** GENSALT_LOG2_ROUNDS rounds of hashing will be performed. */

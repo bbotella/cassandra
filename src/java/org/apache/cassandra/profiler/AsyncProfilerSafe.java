@@ -18,6 +18,8 @@
 
 package org.apache.cassandra.profiler;
 
+import org.apache.cassandra.config.CassandraRelevantProperties;
+
 /**
  * Safe version is unable to execute any command.
  */
@@ -26,8 +28,12 @@ public class AsyncProfilerSafe extends AsyncProfiler
     @Override
     public String execute(String command)
     {
-        throw new SecurityException(String.format("Execute commands are not permitted " +
-                                                  "with this MBean. Please use unsafe MBean" +
-                                                  "if they are needed. Command: %s", command));
+        throw new SecurityException(String.format("The arbitrary command execution is not permitted " +
+                                                  "with %s MBean backed by %s class. If unsafe command execution is required, " +
+                                                  "start Cassandra with %s property set to true. " +
+                                                  "Rejected command: %s%n",
+                                                  AsyncProfiler.MBEAN_NAME,
+                                                  AsyncProfilerSafe.class.getName(),
+                                                  CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE.name(), command));
     }
 }

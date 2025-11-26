@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.cassandra.tools.profiler;
+package org.apache.cassandra.service;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 import one.profiler.AsyncProfiler;
 import org.apache.cassandra.config.CassandraRelevantProperties;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.config.DurationSpec;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.File;
-import org.apache.cassandra.service.StorageService;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -127,6 +127,9 @@ public class AsyncProfilerService
         if (!isEnabled())
             return;
 
+        if (isRunning())
+            stop(null);
+
         ASYNC_PROFILER_ENABLED.setBoolean(false);
         profilerInstance = null;
     }
@@ -158,7 +161,7 @@ public class AsyncProfilerService
         return profilerInstance;
     }
 
-    public synchronized boolean start(String events, String outputFormat, int timeout, String outputFileName)
+    public synchronized boolean start(String events, String outputFormat, String duration, String outputFileName)
     {
         if (isRunning())
             return false;
@@ -168,7 +171,7 @@ public class AsyncProfilerService
             String cmd = format("start,%s,event=%s,timeout=%s,file=%s",
                                 AsyncProfilerFormat.parseFormat(outputFormat),
                                 AsyncProfilerEvent.parseEvents(events),
-                                validateTimeout(timeout),
+                                parseDuration(duration),
                                 new File(logDir, validateOutputFileName(outputFileName)));
 
             String result = maybeInitialize().execute(cmd);
@@ -193,8 +196,13 @@ public class AsyncProfilerService
 
         try
         {
-            File outputFile = new File(logDir, validateOutputFileName(outputFileName));
-            String cmd = "stop,file=" + outputFile.absolutePath();
+            String cmd = "stop";
+            if (outputFileName != null)
+            {
+                File outputFile = new File(logDir, validateOutputFileName(outputFileName));
+                cmd += ",file=" + outputFile.absolutePath();
+            }
+
             String result = maybeInitialize().execute(cmd);
             logger.debug("Stopped Async-Profiler: result={}, cmd={}", result, cmd);
             return true;
@@ -229,6 +237,7 @@ public class AsyncProfilerService
     {
         try
         {
+            createLogDir();
             return Arrays.stream(new File(logDir).list()).map(File::name).sorted().collect(toList());
         }
         catch (Throwable t)
@@ -237,11 +246,12 @@ public class AsyncProfilerService
         }
     }
 
-    public String fetch(String resultFile)
+    public byte[] fetch(String resultFile)
     {
         try
         {
-            return Files.readString(new File(logDir, resultFile).toPath());
+            createLogDir();
+            return Files.readAllBytes(new File(logDir, resultFile).toPath());
         }
         catch (Throwable t)
         {
@@ -251,7 +261,20 @@ public class AsyncProfilerService
 
     public void purge()
     {
+        createLogDir();
         new File(logDir).deleteRecursive();
+    }
+
+    public String status()
+    {
+        try
+        {
+            return maybeInitialize().execute("status");
+        }
+        catch (Throwable t)
+        {
+            return t.getMessage();
+        }
     }
 
     public boolean isEnabled()
@@ -278,12 +301,13 @@ public class AsyncProfilerService
         return command;
     }
 
-    public static int validateTimeout(int timeout)
+    /**
+     * @param duration duration of profiling
+     * @return converted string representation of duration to seconds
+     */
+    public static int parseDuration(String duration)
     {
-        if (timeout <= 0)
-            throw new IllegalArgumentException("Timeout can not be negative or zero.");
-
-        return timeout;
+        return new DurationSpec.IntSecondsBound(duration).toSeconds();
     }
 
     /**

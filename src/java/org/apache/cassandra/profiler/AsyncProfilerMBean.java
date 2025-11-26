@@ -20,22 +20,25 @@ package org.apache.cassandra.profiler;
 
 import java.util.List;
 
-import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerEvent;
-import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerFormat;
+import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
+import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
 
 public interface AsyncProfilerMBean
 {
+    String MBEAN_NAME = "org.apache.cassandra.profiler:type=AsyncProfiler";
+
     /**
      * Starts profiling.
      *
      * @param events         events, can be joined by a comma, each event has to be one of enum names of
      *                       {@link AsyncProfilerEvent}
      * @param outputFormat   output format, has to be one of enum names of {@link AsyncProfilerFormat}
-     * @param timeout        timeout, has to be strictly positive
+     * @param duration       duration of the profiling, Accepts string values in the
+     *                       form of {@code '5m'}, {@code '30s'} etc.
      * @param outputFileName file name to save results to
      * @return true if profiling has started, false when not (e.g. when it was started already)
      */
-    boolean start(String events, String outputFormat, int timeout, String outputFileName);
+    boolean start(String events, String outputFormat, String duration, String outputFileName);
 
     /**
      * Stops profiling.
@@ -86,7 +89,12 @@ public interface AsyncProfilerMBean
      * Returns the content of a result file. Use {@link #list()} to get their names.
      *
      * @param resultFile file with profiler results
-     * @return content of profiler resuls file, as string, null when not found
+     * @return content of profiler resuls file, or null, when not found.
      */
-    String fetch(String resultFile);
+    byte[] fetch(String resultFile);
+
+    /**
+     * @return status the profiler is in, as string description, for diagnostic purposes
+     */
+    String status();
 }

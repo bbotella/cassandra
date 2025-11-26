@@ -18,6 +18,7 @@
 
 package org.apache.cassandra.tools.nodetool;
 
+import java.nio.file.Files;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,8 +28,8 @@ import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
 import org.apache.cassandra.tools.NodeProbe;
-import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerEvent;
-import org.apache.cassandra.tools.profiler.AsyncProfilerService.AsyncProfilerFormat;
+import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
+import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
 import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -38,18 +39,19 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.stream.Collectors.joining;
-import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateCommand;
-import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateOutputFileName;
-import static org.apache.cassandra.tools.profiler.AsyncProfilerService.validateTimeout;
+import static org.apache.cassandra.service.AsyncProfilerService.parseDuration;
+import static org.apache.cassandra.service.AsyncProfilerService.validateCommand;
+import static org.apache.cassandra.service.AsyncProfilerService.validateOutputFileName;
 
 @Command(name = "profile", description = "Manage Async-Profiler on a Cassandra process",
 subcommands = {
 AsyncProfileCommandGroup.AsyncProfileStartCommand.class,
 AsyncProfileCommandGroup.AsyncProfileStopCommand.class,
-AsyncProfileCommandGroup.AsyncProfileRawCommand.class,
+AsyncProfileCommandGroup.AsyncProfileExecuteCommand.class,
 AsyncProfileCommandGroup.AsyncProfilePurgeCommand.class,
 AsyncProfileCommandGroup.AsyncProfileListCommand.class,
-AsyncProfileCommandGroup.AsyncProfileFetchCommand.class
+AsyncProfileCommandGroup.AsyncProfileFetchCommand.class,
+AsyncProfileCommandGroup.AsyncProfileStatusCommand.class
 })
 public class AsyncProfileCommandGroup extends AbstractCommand
 {
@@ -62,17 +64,22 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         cmd.run();
     }
 
-    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer)
+    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer, boolean requiresEnabledProfiler)
     {
         AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
 
-        if (!profiler.isEnabled())
+        if (requiresEnabledProfiler && !profiler.isEnabled())
         {
-            probe.output().err.println("Async-profiler native library is not loaded or unavailable.");
+            probe.output().err.println("Async-profiler native library is not enabled or not possible to load.");
             System.exit(1);
         }
 
         consumer.accept(profiler);
+    }
+
+    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer)
+    {
+        doWithProfiler(probe, consumer, true);
     }
 
     @Command(name = "start", description = "Run Async-Profiler on a Cassandra process")
@@ -80,27 +87,32 @@ public class AsyncProfileCommandGroup extends AbstractCommand
     {
         @Option(names = { "-e", "--event" },
         description = "Event(s) to profile, one of or combination of 'cpu', 'alloc', " +
-                      "'lock', 'wall', 'nativemem', 'cache_misses', delimited by comma.")
+                      "'lock', 'wall', 'nativemem', 'cache_misses', delimited by comma, defaults to 'cpu'")
         public List<AsyncProfilerEvent> event = List.of(AsyncProfilerEvent.cpu);
 
-        @Option(names = { "-o", "--output" }, description = "File Name")
+        @Option(names = { "-o", "--output" }, description = "File name to save profiling results into, defaults to a " +
+                                                            "file of name 'yyyy-MM-dd-HH-mm-ss.html'")
         public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
                                                   .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
 
-        @Option(names = { "-t", "--timeout" }, description = "Timeout in seconds")
-        public int timeout = 60;
+        @Option(names = { "-d", "--duration" }, description = "Duration of profiling, defaults to '60s'. Accepts string values " +
+                                                              "in the form of '5m', '30s' and similar.")
+        public String duration = "60s";
 
         @Option(names = { "-f", "--format" },
-        description = "Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph', 'tree', 'jfr', 'otlp'")
+        description = "Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph', 'tree', 'jfr', 'otlp', defaults to 'flamegraph'")
         public AsyncProfilerFormat outputFormat = AsyncProfilerFormat.flamegraph;
 
         @Override
         public void execute(NodeProbe probe)
         {
+            // make sure it is valid
+            parseDuration(duration);
+
             doWithProfiler(probe, profiler -> {
                 if (!profiler.start(event.stream().map(Enum::name).collect(joining(",")),
                                     outputFormat.name(),
-                                    validateTimeout(timeout),
+                                    duration,
                                     validateOutputFileName(filename)))
                 {
                     output.err.println("Profiler has already started or there was a failure to start it.");
@@ -113,7 +125,8 @@ public class AsyncProfileCommandGroup extends AbstractCommand
     @Command(name = "stop", description = "Stop Async-Profiler on a Cassandra process")
     public static class AsyncProfileStopCommand extends AbstractCommand
     {
-        @Option(names = { "-o", "--output" }, description = "File Name")
+        @Option(names = { "-o", "--output" }, description = "File name to save profiling results into, defaults to a " +
+                                                            "file of name 'yyyy-MM-dd-HH-mm-ss.html'")
         public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
                                                   .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
 
@@ -130,17 +143,27 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         }
     }
 
-    @Command(name = "raw", description = "Execute an arbitrary command on Async-Profiler on a Cassandra process")
-    public static class AsyncProfileRawCommand extends AbstractCommand
+    @Command(name = "execute", description = "Execute an arbitrary command on Async-Profiler on a Cassandra process.")
+    public static class AsyncProfileExecuteCommand extends AbstractCommand
     {
-        @Option(names = { "-c", "--command" }, description = "Raw commands to execute")
+        @Parameters(index = "0", description = "Raw command to execute. There has to be 'unsafe' profiler configured " +
+                                               "in Cassandra, driven by cassandra.async_profiler.unsafe_mode property set" +
+                                               " to true, to be able to do this.", arity = "1")
         public String command;
 
         @Override
         public void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                output.out.println(profiler.execute(validateCommand(command)));
+                try
+                {
+                    output.out.print(profiler.execute(validateCommand(command)));
+                }
+                catch (SecurityException ex)
+                {
+                    output.err.print(ex.getMessage());
+                    System.exit(1);
+                }
             });
         }
     }
@@ -151,7 +174,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         @Override
         protected void execute(NodeProbe probe)
         {
-            doWithProfiler(probe, AsyncProfilerMBean::purge);
+            doWithProfiler(probe, AsyncProfilerMBean::purge, false);
         }
     }
 
@@ -164,13 +187,16 @@ public class AsyncProfileCommandGroup extends AbstractCommand
             doWithProfiler(probe, profiler -> {
                 for (String resultFile : profiler.list())
                     output.out.println(resultFile);
-            });
+            }, false);
         }
     }
 
-    @Command(name = "fetch", description = "Copy profiler result file from node to a local file")
+    @Command(name = "fetch", description = "Copy profiler result file from a node to a local file")
     public static class AsyncProfileFetchCommand extends AbstractCommand
     {
+        @Option(names = { "-b", "--binary" }, description = "treat file to be downloaded having binary content, not string one.")
+        private boolean binary;
+
         @Parameters(index = "0", description = "Remote profiler file name", arity = "1")
         private String remoteFile;
 
@@ -181,15 +207,58 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         protected void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                String content = profiler.fetch(remoteFile);
-                if (content != null)
-                    FileUtils.write(new File(localFile), List.of(content), CREATE, TRUNCATE_EXISTING, WRITE);
+                if (binary)
+                {
+                    doWithContent(profiler, remoteFile, content -> {
+                        try
+                        {
+                            Files.write(new File(localFile).toPath(), content, CREATE, TRUNCATE_EXISTING, WRITE);
+                        }
+                        catch (Throwable t)
+                        {
+                            throw new RuntimeException(t);
+                        }
+                    });
+                }
                 else
                 {
-                    output.out.println("File " + remoteFile + " does not exist.");
+                    doWithContent(profiler,
+                                  remoteFile,
+                                  content -> FileUtils.write(new File(localFile),
+                                                             List.of(new String(content)),
+                                                             CREATE,
+                                                             TRUNCATE_EXISTING,
+                                                             WRITE));
+                }
+            }, false);
+        }
+
+        private void doWithContent(AsyncProfilerMBean profiler, String remoteFile, Consumer<byte[]> consumer)
+        {
+            try
+            {
+                byte[] content = profiler.fetch(remoteFile);
+                if (content == null)
+                {
+                    output.err.println("Remote file " + remoteFile + " not found or error occurred while returning it.");
                     System.exit(1);
                 }
-            });
+                consumer.accept(content);
+            }
+            catch (Throwable t)
+            {
+                System.exit(1);
+            }
+        }
+    }
+
+    @Command(name = "status", description = "Get status of profiling")
+    public static class AsyncProfileStatusCommand extends AbstractCommand
+    {
+        @Override
+        protected void execute(NodeProbe probe)
+        {
+            doWithProfiler(probe, profiler -> output.out.print(profiler.status()));
         }
     }
 }

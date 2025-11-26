@@ -34,14 +34,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javax.management.NotCompliantMBeanException;
 import javax.management.StandardMBean;
 import javax.management.remote.JMXConnectorServer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.cassandra.profiler.AsyncProfiler;
-import org.apache.cassandra.profiler.AsyncProfilerMBean;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +76,6 @@ import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.locator.InetAddressAndPort;
 import org.apache.cassandra.locator.Locator;
-import org.apache.cassandra.profiler.AsyncProfilerSafe;
-import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
 import org.apache.cassandra.tcm.CMSOperations;
 import org.apache.cassandra.tcm.ClusterMetadataService;
 import org.apache.cassandra.tcm.RegistrationStatus;
@@ -109,8 +106,6 @@ import org.apache.cassandra.utils.logging.SlowQueriesAppender;
 import org.apache.cassandra.utils.logging.VirtualTableAppender;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
 import static org.apache.cassandra.config.CassandraRelevantProperties.CASSANDRA_FOREGROUND;
 import static org.apache.cassandra.config.CassandraRelevantProperties.CASSANDRA_PID_FILE;
 import static org.apache.cassandra.config.CassandraRelevantProperties.COM_SUN_MANAGEMENT_JMXREMOTE_PORT;
@@ -264,6 +259,8 @@ public class CassandraDaemon
         logSystemInfo(logger);
 
         NativeLibrary.tryMlockall();
+
+        AsyncProfiler.instance();
 
         Keyspace.setInitialized();
         CommitLog.instance.start();
@@ -758,7 +755,6 @@ public class CassandraDaemon
             applyConfig();
 
             registerNativeAccess();
-            registerAsyncProfiler();
 
             setup();
 
@@ -809,31 +805,6 @@ public class CassandraDaemon
     public static void registerNativeAccess() throws javax.management.NotCompliantMBeanException
     {
         MBeanWrapper.instance.registerMBean(new StandardMBean(new NativeAccess(), NativeAccessMBean.class), MBEAN_NAME, MBeanWrapper.OnException.LOG);
-    }
-
-    @VisibleForTesting
-    public static void registerAsyncProfiler() throws javax.management.NotCompliantMBeanException
-    {
-        if (ASYNC_PROFILER_ENABLED.getBoolean())
-        {
-            try
-            {
-                AsyncProfiler asyncProfiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
-                asyncProfiler.initialize();
-                
-                MBeanWrapper.instance.registerMBean(new StandardMBean(asyncProfiler, AsyncProfilerMBean.class),
-                                                    AsyncProfiler.MBEAN_NAME,
-                                                    MBeanWrapper.OnException.LOG);
-            }
-            catch (ConfigurationException | NotCompliantMBeanException t)
-            {
-                throw t;
-            }
-            catch (Throwable t)
-            {
-                logger.error("Error while registering Async-Profiler", t);
-            }
-        }
     }
 
     public void applyConfig()

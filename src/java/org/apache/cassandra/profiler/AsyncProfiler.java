@@ -19,18 +19,57 @@
 package org.apache.cassandra.profiler;
 
 import java.util.List;
+import javax.management.StandardMBean;
 
-import org.apache.cassandra.tools.profiler.AsyncProfilerService;
+import org.apache.cassandra.exceptions.ConfigurationException;
+import org.apache.cassandra.service.AsyncProfilerService;
+import org.apache.cassandra.utils.MBeanWrapper;
+
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
 
 public abstract class AsyncProfiler implements AsyncProfilerMBean
 {
-    public static final String MBEAN_NAME = "org.apache.cassandra.profiler:type=AsyncProfiler";
     protected final AsyncProfilerService service = new AsyncProfilerService();
 
-    @Override
-    public boolean start(String events, String outputFormat, int timeout, String outputFileName)
+    private static AsyncProfiler instance;
+
+    public static synchronized AsyncProfiler instance()
     {
-        return service.start(events, outputFormat, timeout, outputFileName);
+        if (AsyncProfiler.instance == null)
+        {
+            try
+            {
+                AsyncProfiler.instance = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
+
+                // register mbean first, before initialisation, which might fail (e.g. profiler functionality is disabled)
+                MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfiler.instance, AsyncProfilerMBean.class),
+                                                    AsyncProfiler.MBEAN_NAME,
+                                                    MBeanWrapper.OnException.LOG);
+
+                instance.initialize();
+            }
+            catch (ConfigurationException ex)
+            {
+                throw ex;
+            }
+            catch (IllegalStateException ex)
+            {
+                if (!"Async-Profiler is not enabled.".equals(ex.getMessage()))
+                    throw ex;
+            }
+            catch (Throwable t)
+            {
+                throw new RuntimeException(t);
+            }
+        }
+
+        return AsyncProfiler.instance;
+    }
+
+    @Override
+    public boolean start(String events, String outputFormat, String duration, String outputFileName)
+    {
+        return service.start(events, outputFormat, duration, outputFileName);
     }
 
     @Override
@@ -70,9 +109,15 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
     }
 
     @Override
-    public String fetch(String resultFile)
+    public byte[] fetch(String resultFile)
     {
         return service.fetch(resultFile);
+    }
+
+    @Override
+    public String status()
+    {
+        return service.status();
     }
 
     public void initialize()
