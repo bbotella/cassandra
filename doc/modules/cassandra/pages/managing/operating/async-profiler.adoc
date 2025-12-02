@@ -101,3 +101,41 @@ Call trace storage:   10244 KB
 However, to execute arbitrary commands for Async-profiler, we need to enable _unsafe_ async profiling by system property of Cassandra `cassandra.async_profiler.unsafe_mode` set to `true`. You will not be able to do this otherwise.
 
 You can also control where profiling files go via `cassandra.logdir.async_profiler` system property. When not set, by default they will be stored to `cassandra.logdir` + `async-profiler` directory.
+
+== Using a Different Async-Profiler Version
+
+If you need to use a different version of async-profiler (for example, to test a newer version or a custom build), you can replace the JAR file in the classpath.
+
+After building Cassandra, replace the JAR in the build output directory:
+
+----
+$ cp /path/to/your/async-profiler-X.Y.jar build/lib/jars/async-profiler-4.2.jar
+----
+
+Or replace it in the lib directory before building:
+
+----
+$ cp /path/to/your/async-profiler-X.Y.jar lib/async-profiler-4.2.jar
+$ ant clean jar
+----
+
+Then restart Cassandra to use the new version.
+
+=== Compatibility Requirements
+
+The replacement JAR must maintain API compatibility with the original version:
+
+* Must include the `one.profiler.AsyncProfiler` class with compatible methods (`getInstance()`, `execute(String)`)
+* Must contain native libraries for your platform in the correct structure:
+** `linux-x64/libasyncProfiler.so`
+** `linux-arm64/libasyncProfiler.so`
+** `macos/libasyncProfiler.so`
+* Must support the same command syntax and profiling events (cpu, alloc, lock, wall, nativemem, cache-misses)
+
+To verify the replacement worked, check the version after restart:
+
+----
+$ nodetool profile status
+----
+
+If you encounter errors, check the Cassandra logs for async-profiler initialization issues.
