@@ -35,7 +35,7 @@ import org.apache.cassandra.distributed.shared.Uninterruptibles;
 import org.apache.cassandra.distributed.shared.WithProperties;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
-import org.apache.cassandra.profiler.AsyncProfiler;
+import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
@@ -95,14 +95,14 @@ public class AsyncProfilerTest extends TestBaseImpl
             assertTrue(secondStart.getStderr().contains("Profiler has already started"));
 
             // disable while it is running
-            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfiler.instance().disable());
+            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfilerService.instance().disable());
             NodeToolResult statusResult = cluster.get(1).nodetoolResult("profile", "status");
             statusResult.asserts().failure();
             assertTrue(statusResult.getStderr().contains("Async-profiler native library is not enabled or not possible to load."));
-            assertFalse(cluster.get(1).callOnInstance((SerializableCallable<Boolean>) () -> AsyncProfiler.instance().isEnabled()));
+            assertFalse(cluster.get(1).callOnInstance((SerializableCallable<Boolean>) () -> AsyncProfilerService.instance().isEnabled()));
 
             // we can enable it back again
-            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfiler.instance().enable());
+            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfilerService.instance().enable());
             startAndAssert();
             Uninterruptibles.sleepUninterruptibly(5, SECONDS);
             stop();

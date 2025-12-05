@@ -19,11 +19,12 @@
 package org.apache.cassandra.profiler;
 
 import org.apache.cassandra.config.CassandraRelevantProperties;
+import org.apache.cassandra.service.AsyncProfilerService;
 
 /**
  * Safe version is unable to execute any command.
  */
-public class AsyncProfilerSafe extends AsyncProfiler
+public class AsyncProfilerSafe extends AsyncProfilerService
 {
     @Override
     public String execute(String command)
@@ -32,7 +33,7 @@ public class AsyncProfilerSafe extends AsyncProfiler
                                                   "with %s MBean backed by %s class. If unsafe command execution is required, " +
                                                   "start Cassandra with %s property set to true. " +
                                                   "Rejected command: %s%n",
-                                                  AsyncProfiler.MBEAN_NAME,
+                                                  AsyncProfilerService.MBEAN_NAME,
                                                   AsyncProfilerSafe.class.getName(),
                                                   CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE.name(), command));
     }

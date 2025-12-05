@@ -31,7 +31,6 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.distributed.shared.WithProperties;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
-import org.apache.cassandra.profiler.AsyncProfiler;
 import org.apache.cassandra.profiler.AsyncProfilerSafe;
 import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
 import org.apache.cassandra.service.AsyncProfilerService;
@@ -52,7 +51,7 @@ public class AsyncProfilerServiceTest
 {
     private static final String testOutputPath = FileUtils.getTempDir().path();
 
-    private AsyncProfiler profiler;
+    private AsyncProfilerService profiler;
     private File testOutputFile;
 
     @BeforeClass
@@ -87,10 +86,10 @@ public class AsyncProfilerServiceTest
         profiler = null;
     }
 
-    private AsyncProfiler getProfiler()
+    private AsyncProfilerService getProfiler()
     {
-        AsyncProfiler profiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
-        profiler.initialize();
+        AsyncProfilerService profiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
+        profiler.maybeInitialize();
         assertTrue(profiler.isEnabled());
         return profiler;
     }
@@ -98,7 +97,7 @@ public class AsyncProfilerServiceTest
     @Test
     public void testStartAndStopProfiling() throws Throwable
     {
-        AsyncProfiler profiler = getProfiler();
+        AsyncProfilerService profiler = getProfiler();
         profiler.start(cpu.name(), flamegraph.name(), "10s", testOutputFile.name());
         Thread.sleep(5000);
         profiler.stop(testOutputFile.name());
@@ -168,7 +167,7 @@ public class AsyncProfilerServiceTest
     @Test
     public void testSecondStartNotExecuted()
     {
-        AsyncProfiler profiler = getProfiler();
+        AsyncProfilerService profiler = getProfiler();
         assertTrue(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
         assertFalse(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
         profiler.stop(testOutputFile.name());
@@ -178,7 +177,7 @@ public class AsyncProfilerServiceTest
     public void testProfilerDisabledThrowsException()
     {
         assertThatThrownBy(() -> {
-            AsyncProfiler profiler = getProfiler();
+            AsyncProfilerService profiler = getProfiler();
             profiler.disable();
             profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
         }).hasCauseExactlyInstanceOf(AsyncProfilerService.AsyncProfilerNotEnabled.class)
@@ -189,7 +188,7 @@ public class AsyncProfilerServiceTest
     public void testAdvancedModeEnabledSuccess() throws Throwable
     {
         ASYNC_PROFILER_UNSAFE_MODE.setBoolean(true);
-        AsyncProfiler profiler = getProfiler();
+        AsyncProfilerService profiler = getProfiler();
 
         profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
         Thread.sleep(5000);

@@ -18,14 +18,12 @@
 
 package org.apache.cassandra.profiler;
 
+import org.apache.cassandra.service.AsyncProfilerService;
+
 /**
  * Unsafe version is able to execute arbitrary commands.
  */
-public class AsyncProfilerUnsafe extends AsyncProfiler
+public class AsyncProfilerUnsafe extends AsyncProfilerService
 {
-    @Override
-    public String execute(String command)
-    {
-        return service.execute(command);
-    }
+
 }

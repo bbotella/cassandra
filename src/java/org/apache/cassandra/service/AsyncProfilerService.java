@@ -25,6 +25,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.management.StandardMBean;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +36,18 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.config.DurationSpec;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.File;
+import org.apache.cassandra.profiler.AsyncProfilerMBean;
+import org.apache.cassandra.profiler.AsyncProfilerSafe;
+import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
+import org.apache.cassandra.utils.MBeanWrapper;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
+import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
 
-public class AsyncProfilerService
+public class AsyncProfilerService implements AsyncProfilerMBean
 {
     private static final Logger logger = LoggerFactory.getLogger(AsyncProfilerService.class);
 
@@ -48,6 +55,40 @@ public class AsyncProfilerService
     private static final EnumSet<AsyncProfilerFormat> VALID_FORMATS = EnumSet.allOf(AsyncProfilerFormat.class);
     private static final Pattern VALID_FILENAME_REGEX_PATTERN = Pattern.compile("^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
     private static final int MAX_SAFE_PROFILING_DURATION = 43200; // 12 hours
+
+    private static AsyncProfilerService instance;
+
+    public static synchronized AsyncProfilerService instance()
+    {
+        if (AsyncProfilerService.instance == null)
+        {
+            try
+            {
+                AsyncProfilerService.instance = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
+
+                // register mbean first, before initialisation, which might fail (e.g. profiler functionality is disabled)
+                MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfilerService.instance, AsyncProfilerMBean.class),
+                                                    AsyncProfilerService.MBEAN_NAME,
+                                                    MBeanWrapper.OnException.LOG);
+
+                instance.maybeInitialize();
+            }
+            catch (ConfigurationException ex)
+            {
+                throw ex;
+            }
+            catch (AsyncProfilerService.AsyncProfilerNotEnabled ex)
+            {
+                // Ignore to allow methods that do not require the profiler to be enabled such as list, fetch, purge
+            }
+            catch (Throwable t)
+            {
+                throw new RuntimeException(t);
+            }
+        }
+
+        return AsyncProfilerService.instance;
+    }
 
     public enum AsyncProfilerEvent
     {
@@ -114,6 +155,7 @@ public class AsyncProfilerService
 
     private String logDir;
 
+    @Override
     public synchronized void enable()
     {
         if (isEnabled())
@@ -123,6 +165,7 @@ public class AsyncProfilerService
         maybeInitialize();
     }
 
+    @Override
     public synchronized void disable()
     {
         if (!isEnabled())
@@ -162,6 +205,7 @@ public class AsyncProfilerService
         return profilerInstance;
     }
 
+    @Override
     public synchronized boolean start(String events, String outputFormat, String duration, String outputFileName)
     {
         if (isRunning())
@@ -190,6 +234,7 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public synchronized boolean stop(String outputFileName)
     {
         if (!isRunning())
@@ -219,6 +264,7 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public String execute(String command)
     {
         try
@@ -234,6 +280,7 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public List<String> list()
     {
         try
@@ -247,6 +294,7 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public byte[] fetch(String resultFile)
     {
         try
@@ -261,12 +309,14 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public void purge()
     {
         createLogDir();
         new File(logDir).deleteRecursive();
     }
 
+    @Override
     public String status()
     {
         try
@@ -280,6 +330,7 @@ public class AsyncProfilerService
         }
     }
 
+    @Override
     public boolean isEnabled()
     {
         return profilerInstance != null;
