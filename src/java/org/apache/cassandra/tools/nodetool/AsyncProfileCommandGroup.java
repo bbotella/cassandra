@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
-import org.apache.cassandra.profiler.AsyncProfilerMBean;
+import org.apache.cassandra.service.AsyncProfilerServiceMBean;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
 import org.apache.cassandra.tools.NodeProbe;
@@ -64,9 +64,9 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         cmd.run();
     }
 
-    private static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer, boolean requiresEnabledProfiler)
+    private static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerServiceMBean> consumer, boolean requiresEnabledProfiler)
     {
-        AsyncProfilerMBean profiler = probe.getAsyncProfilerProxy();
+        AsyncProfilerServiceMBean profiler = probe.getAsyncProfilerProxy();
 
         if (requiresEnabledProfiler && !profiler.isEnabled())
         {
@@ -90,7 +90,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         return filename;
     }
 
-    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerMBean> consumer)
+    public static void doWithProfiler(NodeProbe probe, Consumer<AsyncProfilerServiceMBean> consumer)
     {
         doWithProfiler(probe, consumer, true);
     }
@@ -189,7 +189,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         @Override
         protected void execute(NodeProbe probe)
         {
-            doWithProfiler(probe, AsyncProfilerMBean::purge, false);
+            doWithProfiler(probe, AsyncProfilerServiceMBean::purge, false);
         }
     }
 
@@ -248,7 +248,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
             }, false);
         }
 
-        private void doWithContent(AsyncProfilerMBean profiler, String remoteFile, Consumer<byte[]> consumer)
+        private void doWithContent(AsyncProfilerServiceMBean profiler, String remoteFile, Consumer<byte[]> consumer)
         {
             try
             {

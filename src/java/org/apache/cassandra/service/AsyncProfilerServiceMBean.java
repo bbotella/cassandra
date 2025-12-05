@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.cassandra.profiler;
+package org.apache.cassandra.service;
 
 import java.util.List;
 
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
 
-public interface AsyncProfilerMBean
+public interface AsyncProfilerServiceMBean
 {
     String MBEAN_NAME = "org.apache.cassandra.profiler:type=AsyncProfiler";
 
@@ -62,16 +62,6 @@ public interface AsyncProfilerMBean
      * @return true if async profiling is enabled and profiler is initialized, false otherwise.
      */
     boolean isEnabled();
-
-    /**
-     * Disables Async-Profiler, if not already disabled.
-     */
-    void disable();
-
-    /**
-     * Enables Async-Profiler, if not already enabled.
-     */
-    void enable();
 
     /**
      * Removes all profile files from disk.
