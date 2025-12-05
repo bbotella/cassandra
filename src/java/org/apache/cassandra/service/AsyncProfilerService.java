@@ -73,10 +73,6 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
                 instance.maybeInitialize();
             }
-            catch (ConfigurationException ex)
-            {
-                throw ex;
-            }
             catch (AsyncProfilerService.AsyncProfilerNotEnabled ex)
             {
                 // Ignore to allow methods that do not require the profiler to be enabled such as list, fetch, purge
@@ -133,7 +129,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
     public enum AsyncProfilerFormat
     {
-        flat, traces, collapsed, flamegraph, tree, jfr, otlp;
+        flat, traces, collapsed, flamegraph, tree, jfr;
 
         public static String parseFormat(String rawFormat)
         {
