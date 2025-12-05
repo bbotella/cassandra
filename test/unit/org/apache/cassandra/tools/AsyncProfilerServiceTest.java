@@ -31,8 +31,6 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.distributed.shared.WithProperties;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
-import org.apache.cassandra.profiler.AsyncProfilerSafe;
-import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
 import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.lang.String.format;
@@ -74,7 +72,6 @@ public class AsyncProfilerServiceTest
         try
         {
             profiler.stop(testOutputFile.absolutePath());
-            profiler.disable();
             testOutputFile.deleteIfExists();
         }
         catch (Exception e)
@@ -88,114 +85,136 @@ public class AsyncProfilerServiceTest
 
     private AsyncProfilerService getProfiler()
     {
-        AsyncProfilerService profiler = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
-        profiler.maybeInitialize();
-        assertTrue(profiler.isEnabled());
-        return profiler;
+        AsyncProfilerService.reset();
+        return AsyncProfilerService.instance();
     }
 
     @Test
     public void testStartAndStopProfiling() throws Throwable
     {
-        AsyncProfilerService profiler = getProfiler();
-        profiler.start(cpu.name(), flamegraph.name(), "10s", testOutputFile.name());
-        Thread.sleep(5000);
-        profiler.stop(testOutputFile.name());
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            AsyncProfilerService profiler = getProfiler();
+            profiler.start(cpu.name(), flamegraph.name(), "10s", testOutputFile.name());
+            Thread.sleep(5000);
+            profiler.stop(testOutputFile.name());
 
-        assertTrue("Output profile file should exist", testOutputFile.exists());
-        assertTrue("Output profile file should not be empty", testOutputFile.length() > 0);
+            assertTrue("Output profile file should exist", testOutputFile.exists());
+            assertTrue("Output profile file should not be empty", testOutputFile.length() > 0);
 
-        List<String> list = profiler.list();
-        assertFalse(list.isEmpty());
+            List<String> list = profiler.list();
+            assertFalse(list.isEmpty());
 
-        Optional<String> resultFile = list.stream().filter(f -> f.equals(testOutputFile.name())).findFirst();
-        assertTrue(resultFile.isPresent());
-        byte[] content = profiler.fetch(resultFile.get());
-        assertNotNull(content);
+            Optional<String> resultFile = list.stream().filter(f -> f.equals(testOutputFile.name())).findFirst();
+            assertTrue(resultFile.isPresent());
+            byte[] content = profiler.fetch(resultFile.get());
+            assertNotNull(content);
 
-        assertEquals("Profiler is not active\n", profiler.status());
+            assertEquals("Profiler is not active\n", profiler.status());
+        }
     }
 
     @Test
     public void testInvalidEventThrowsException()
     {
-        assertThatThrownBy(() -> getProfiler().start("not_a_real_event", "flamegraph", "60s", testOutputFile.absolutePath()))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Event must be one or a combination of [cpu, alloc, lock, wall, nativemem, cache_misses]");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            assertThatThrownBy(() -> getProfiler().start("not_a_real_event", "flamegraph", "60s", testOutputFile.absolutePath()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Event must be one or a combination of [cpu, alloc, lock, wall, nativemem, cache_misses]");
+        }
     }
 
     @Test
     public void testInvalidDurationThrowsException()
     {
-        assertThatThrownBy(() -> getProfiler().start(cpu.name(), flamegraph.name(), "13h", testOutputFile.absolutePath()))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Max profiling duration is 43200 seconds. If you need longer profiling, use execute command instead");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            assertThatThrownBy(() -> getProfiler().start(cpu.name(), flamegraph.name(), "13h", testOutputFile.absolutePath()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Max profiling duration is 43200 seconds. If you need longer profiling, use execute command instead");
+        }
     }
 
     @Test
     public void testInvalidFormatThrowsException()
     {
-        assertThatThrownBy(() -> getProfiler().start(cpu.name(), "not_a_real_format", "60s", testOutputFile.absolutePath()))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Format must be one of [flat, traces, collapsed, flamegraph, tree, jfr, otlp]");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            assertThatThrownBy(() -> getProfiler().start(cpu.name(), "not_a_real_format", "60s", testOutputFile.absolutePath()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Format must be one of [flat, traces, collapsed, flamegraph, tree, jfr]");
+        }
     }
 
     @Test
     public void testInvalidOutputFileNameThrowsException()
     {
-        assertThatThrownBy(() -> getProfiler().start(cpu.name(),
-                                                     flamegraph.name(),
-                                                     "60s",
-                                                     "| grep test"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Output file name must match pattern ^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            assertThatThrownBy(() -> getProfiler().start(cpu.name(),
+                                                         flamegraph.name(),
+                                                         "60s",
+                                                         "| grep test"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Output file name must match pattern ^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
+        }
     }
 
     @Test
     public void testInvalidTimeoutThrowsException()
     {
-        assertThatThrownBy(() -> {
-            getProfiler().start(cpu.name(),
-                                flamegraph.name(),
-                                "10abc",
-                                "| grep test");
-        })
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Invalid duration: 10abc Accepted units:[SECONDS, MINUTES, HOURS, DAYS] where case matters and only non-negative values.");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            assertThatThrownBy(() -> {
+                getProfiler().start(cpu.name(),
+                                    flamegraph.name(),
+                                    "10abc",
+                                    "| grep test");
+            })
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid duration: 10abc Accepted units:[SECONDS, MINUTES, HOURS, DAYS] where case matters and only non-negative values.");
+        }
     }
 
     @Test
     public void testSecondStartNotExecuted()
     {
-        AsyncProfilerService profiler = getProfiler();
-        assertTrue(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
-        assertFalse(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
-        profiler.stop(testOutputFile.name());
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
+        {
+            AsyncProfilerService profiler = getProfiler();
+            assertTrue(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
+            assertFalse(profiler.start(cpu.name(), flamegraph.name(), "60s", testOutputFile.name()));
+            profiler.stop(testOutputFile.name());
+        }
     }
 
     @Test
     public void testProfilerDisabledThrowsException()
     {
-        assertThatThrownBy(() -> {
-            AsyncProfilerService profiler = getProfiler();
-            profiler.disable();
-            profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
-        }).hasCauseExactlyInstanceOf(AsyncProfilerService.AsyncProfilerNotEnabled.class)
-          .hasMessageContaining("Async-Profiler is not enabled.");
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, true).set(ASYNC_PROFILER_ENABLED, false))
+        {
+            assertThatThrownBy(() -> {
+                AsyncProfilerService profiler = getProfiler();
+                profiler.status();
+            }).hasMessageContaining("Async profiler not available.");
+        }
     }
 
     @Test
     public void testAdvancedModeEnabledSuccess() throws Throwable
     {
-        ASYNC_PROFILER_UNSAFE_MODE.setBoolean(true);
-        AsyncProfilerService profiler = getProfiler();
+        try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, true))
+        {
+            AsyncProfilerService profiler = getProfiler();
 
-        profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
-        Thread.sleep(5000);
-        profiler.execute(format("stop,file=%s", testOutputFile));
+            profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
+            Thread.sleep(5000);
+            profiler.execute(format("stop,file=%s", testOutputFile));
 
-        assertTrue("Output profile file for unsafe mode should exist", testOutputFile.exists());
-        assertTrue("Output profile file for unsafe mode should not be empty", testOutputFile.length() > 0);
+            assertTrue("Output profile file for unsafe mode should exist", testOutputFile.exists());
+            assertTrue("Output profile file for unsafe mode should not be empty", testOutputFile.length() > 0);
+        }
     }
 
     @Test
@@ -215,8 +234,7 @@ public class AsyncProfilerServiceTest
             assertThatThrownBy(() -> getProfiler().execute("foo"))
             .isInstanceOf(SecurityException.class)
             .hasMessageContaining("The arbitrary command execution is not permitted with org.apache.cassandra.profiler:type=AsyncProfiler " +
-                                  "MBean backed by org.apache.cassandra.profiler.AsyncProfilerSafe class. " +
-                                  "If unsafe command execution is required, start Cassandra with ASYNC_PROFILER_UNSAFE_MODE " +
+                                  "MBean. If unsafe command execution is required, start Cassandra with ASYNC_PROFILER_UNSAFE_MODE " +
                                   "property set to true. Rejected command: foo");
         }
     }

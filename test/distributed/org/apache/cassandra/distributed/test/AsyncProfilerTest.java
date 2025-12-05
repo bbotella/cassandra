@@ -28,8 +28,6 @@ import org.junit.rules.TemporaryFolder;
 
 import org.apache.cassandra.distributed.Cluster;
 import org.apache.cassandra.distributed.api.Feature;
-import org.apache.cassandra.distributed.api.IIsolatedExecutor.SerializableCallable;
-import org.apache.cassandra.distributed.api.IIsolatedExecutor.SerializableRunnable;
 import org.apache.cassandra.distributed.api.NodeToolResult;
 import org.apache.cassandra.distributed.shared.Uninterruptibles;
 import org.apache.cassandra.distributed.shared.WithProperties;
@@ -93,22 +91,6 @@ public class AsyncProfilerTest extends TestBaseImpl
             NodeToolResult secondStart = start();
             secondStart.asserts().failure();
             assertTrue(secondStart.getStderr().contains("Profiler has already started"));
-
-            // disable while it is running
-            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfilerService.instance().disable());
-            NodeToolResult statusResult = cluster.get(1).nodetoolResult("profile", "status");
-            statusResult.asserts().failure();
-            assertTrue(statusResult.getStderr().contains("Async-profiler native library is not enabled or not possible to load."));
-            assertFalse(cluster.get(1).callOnInstance((SerializableCallable<Boolean>) () -> AsyncProfilerService.instance().isEnabled()));
-
-            // we can enable it back again
-            cluster.get(1).runOnInstance((SerializableRunnable) () -> AsyncProfilerService.instance().enable());
-            startAndAssert();
-            Uninterruptibles.sleepUninterruptibly(5, SECONDS);
-            stop();
-            statusResult = cluster.get(1).nodetoolResult("profile", "status");
-            String stdout = statusResult.getStdout();
-            assertTrue(statusResult.getStdout().contains("Profiler is not active"));
         }
     }
 
@@ -129,6 +111,7 @@ public class AsyncProfilerTest extends TestBaseImpl
             // fetch
             String destinationFileName = UUID.randomUUID().toString();
             File destination = new File(newTmpDir, destinationFileName);
+            AsyncProfilerService.instance();
             fetch(fileNameToWriteTo, destination.absolutePath());
             assertTrue(destination.length() != 0);
 

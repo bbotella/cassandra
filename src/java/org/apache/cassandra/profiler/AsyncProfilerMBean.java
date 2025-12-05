@@ -64,16 +64,6 @@ public interface AsyncProfilerMBean
     boolean isEnabled();
 
     /**
-     * Disables Async-Profiler, if not already disabled.
-     */
-    void disable();
-
-    /**
-     * Enables Async-Profiler, if not already enabled.
-     */
-    void enable();
-
-    /**
      * Removes all profile files from disk.
      */
     void purge();

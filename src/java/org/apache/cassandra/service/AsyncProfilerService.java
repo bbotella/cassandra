@@ -23,10 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.management.StandardMBean;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +39,6 @@ import org.apache.cassandra.config.DurationSpec;
 import org.apache.cassandra.exceptions.ConfigurationException;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
-import org.apache.cassandra.profiler.AsyncProfilerSafe;
-import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
 import org.apache.cassandra.utils.MBeanWrapper;
 
 import static java.lang.String.format;
@@ -57,25 +57,24 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     private static final int MAX_SAFE_PROFILING_DURATION = 43200; // 12 hours
 
     private static AsyncProfilerService instance;
+    private static AsyncProfiler asyncProfiler;
+    private final boolean unsafeMode;
 
     public static synchronized AsyncProfilerService instance()
     {
-        if (AsyncProfilerService.instance == null)
+        if (instance == null)
         {
             try
             {
-                AsyncProfilerService.instance = ASYNC_PROFILER_UNSAFE_MODE.getBoolean() ? new AsyncProfilerUnsafe() : new AsyncProfilerSafe();
-
-                // register mbean first, before initialisation, which might fail (e.g. profiler functionality is disabled)
-                MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfilerService.instance, AsyncProfilerMBean.class),
-                                                    AsyncProfilerService.MBEAN_NAME,
-                                                    MBeanWrapper.OnException.LOG);
-
-                instance.maybeInitialize();
-            }
-            catch (AsyncProfilerService.AsyncProfilerNotEnabled ex)
-            {
-                // Ignore to allow methods that do not require the profiler to be enabled such as list, fetch, purge
+                instance = new AsyncProfilerService(ASYNC_PROFILER_UNSAFE_MODE.getBoolean());
+                asyncProfiler = instance.getProfiler().orElse(null);
+                if (ASYNC_PROFILER_ENABLED.getBoolean())
+                {
+                    // register mbean first, before initialisation, which might fail (e.g. profiler functionality is disabled)
+                    MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfilerService.instance, AsyncProfilerMBean.class),
+                                                        AsyncProfilerService.MBEAN_NAME,
+                                                        MBeanWrapper.OnException.LOG);
+                }
             }
             catch (Throwable t)
             {
@@ -84,6 +83,11 @@ public class AsyncProfilerService implements AsyncProfilerMBean
         }
 
         return AsyncProfilerService.instance;
+    }
+
+    public AsyncProfilerService(boolean unsafeMode)
+    {
+        this.unsafeMode = unsafeMode;
     }
 
     public enum AsyncProfilerEvent
@@ -147,59 +151,9 @@ public class AsyncProfilerService implements AsyncProfilerMBean
         }
     }
 
-    private volatile AsyncProfiler profilerInstance;
+
 
     private String logDir;
-
-    @Override
-    public synchronized void enable()
-    {
-        if (isEnabled())
-            return;
-
-        ASYNC_PROFILER_ENABLED.setBoolean(true);
-        maybeInitialize();
-    }
-
-    @Override
-    public synchronized void disable()
-    {
-        if (!isEnabled())
-            return;
-
-        if (isRunning())
-            stop(null);
-
-        ASYNC_PROFILER_ENABLED.setBoolean(false);
-        profilerInstance = null;
-    }
-
-    public synchronized AsyncProfiler maybeInitialize()
-    {
-        if (!ASYNC_PROFILER_ENABLED.getBoolean())
-            throw new AsyncProfilerNotEnabled("Async-Profiler is not enabled.");
-
-        // if somebody removes dir while a node runs, just recreate it
-        createLogDir();
-
-        if (profilerInstance == null)
-        {
-            try
-            {
-                profilerInstance = one.profiler.AsyncProfiler.getInstance();
-            }
-            catch (ConfigurationException ex)
-            {
-                throw ex;
-            }
-            catch (Throwable t)
-            {
-                throw new IllegalStateException("Unable to get an instance of Async-Profiler", t);
-            }
-        }
-
-        return profilerInstance;
-    }
 
     @Override
     public synchronized boolean start(String events, String outputFormat, String duration, String outputFileName)
@@ -209,14 +163,23 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
         try
         {
-            String cmd = format("start,%s,event=%s,timeout=%s,file=%s",
-                                AsyncProfilerFormat.parseFormat(outputFormat),
-                                AsyncProfilerEvent.parseEvents(events),
-                                parseDuration(duration),
-                                new File(logDir, validateOutputFileName(outputFileName)));
+            run(new ThrowingFunction<>()
+            {
+                @Override
+                public Object apply(AsyncProfiler profiler) throws Throwable
+                {
+                    String cmd = format("start,%s,event=%s,timeout=%s,file=%s",
+                                        AsyncProfilerFormat.parseFormat(outputFormat),
+                                        AsyncProfilerEvent.parseEvents(events),
+                                        parseDuration(duration),
+                                        new File(logDir, validateOutputFileName(outputFileName)));
 
-            String result = maybeInitialize().execute(cmd);
-            logger.debug("Started Async-Profiler: result={}, cmd={}", result, cmd);
+                    String result = profiler.execute(cmd);
+                    logger.debug("Started Async-Profiler: result={}, cmd={}", result, cmd);
+
+                    return null;
+                }
+            });
             return true;
         }
         catch (IllegalStateException | IllegalArgumentException ex)
@@ -238,15 +201,24 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
         try
         {
-            String cmd = "stop";
-            if (outputFileName != null)
+            run(new ThrowingFunction<>()
             {
-                File outputFile = new File(logDir, validateOutputFileName(outputFileName));
-                cmd += ",file=" + outputFile.absolutePath();
-            }
+                @Override
+                public Object apply(AsyncProfiler profiler) throws Throwable
+                {
+                    String cmd = "stop";
+                    if (outputFileName != null)
+                    {
+                        File outputFile = new File(logDir, validateOutputFileName(outputFileName));
+                        cmd += ",file=" + outputFile.absolutePath();
+                    }
 
-            String result = maybeInitialize().execute(cmd);
-            logger.debug("Stopped Async-Profiler: result={}, cmd={}", result, cmd);
+                    String result = profiler.execute(cmd);
+                    logger.debug("Stopped Async-Profiler: result={}, cmd={}", result, cmd);
+
+                    return null;
+                }
+            });
             return true;
         }
         catch (IllegalStateException | IllegalArgumentException e)
@@ -263,17 +235,24 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     @Override
     public String execute(String command)
     {
-        try
+        if (!unsafeMode)
         {
-            String result = maybeInitialize().execute(validateCommand(command));
-            logger.debug("Executed raw command in Async-Profiler: result={}, cmd={}", result, command);
-            return result;
+            throw new SecurityException(String.format("The arbitrary command execution is not permitted " +
+                                                      "with %s MBean. If unsafe command execution is required, " +
+                                                      "start Cassandra with %s property set to true. " +
+                                                      "Rejected command: %s",
+                                                      AsyncProfilerService.MBEAN_NAME,
+                                                      CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE.name(), command));
         }
-        catch (Throwable e)
+
+        return run(new ThrowingFunction<AsyncProfiler, String>()
         {
-            logger.error("Failed to execute raw Async-Profiler command {}", command, e);
-            throw new RuntimeException(e);
-        }
+            @Override
+            public String apply(AsyncProfiler profiler) throws Throwable
+            {
+                return profiler.execute(validateCommand(command));
+            }
+        });
     }
 
     @Override
@@ -315,21 +294,20 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     @Override
     public String status()
     {
-        try
+        return run(new ThrowingFunction<>()
         {
-            return maybeInitialize().execute("status");
-        }
-        catch (Throwable t)
-        {
-            logger.error("There was an error trying to execute status", t);
-            return t.getMessage();
-        }
+            @Override
+            public String apply(AsyncProfiler asyncProfiler) throws Throwable
+            {
+                return asyncProfiler.execute("status");
+            }
+        });
     }
 
     @Override
     public boolean isEnabled()
     {
-        return profilerInstance != null;
+        return instance != null;
     }
 
     public static String validateOutputFileName(String outputFile)
@@ -416,7 +394,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
         try
         {
-            String status = maybeInitialize().execute("status");
+            String status = status();
             return status != null && status.contains("Profiling is running");
         }
         catch (Throwable t)
@@ -425,11 +403,59 @@ public class AsyncProfilerService implements AsyncProfilerMBean
         }
     }
 
-    public static class AsyncProfilerNotEnabled extends IllegalStateException
+    private <T> T run(ThrowingFunction<AsyncProfiler, T> f)
     {
-        public AsyncProfilerNotEnabled(String s)
+        if (asyncProfiler != null)
         {
-            super(s);
+            try
+            {
+                return f.apply(asyncProfiler);
+            }
+            catch (IllegalStateException | IllegalArgumentException t)
+            {
+                throw t;
+            }
+            catch (Throwable t)
+            {
+                throw new RuntimeException(t);
+            }
         }
+        else
+            throw new IllegalStateException("Async profiler not available.");
+    }
+
+    public abstract static class ThrowingFunction<A, B>
+    {
+        public abstract B apply(AsyncProfiler a) throws Throwable;
+    }
+
+    private Optional<AsyncProfiler> getProfiler()
+    {
+        if (!ASYNC_PROFILER_ENABLED.getBoolean())
+            return Optional.empty();
+
+        if (asyncProfiler != null)
+            return Optional.of(asyncProfiler);
+
+        createLogDir();
+
+        try
+        {
+            asyncProfiler = AsyncProfiler.getInstance();
+            return Optional.of(asyncProfiler);
+        }
+        catch (Throwable t)
+        {
+            throw new IllegalStateException("Unable to get an instance of Async-Profiler", t);
+        }
+    }
+
+    @VisibleForTesting
+    public static void reset()
+    {
+        if (instance != null)
+            asyncProfiler = null;
+
+        instance = null;
     }
 }
