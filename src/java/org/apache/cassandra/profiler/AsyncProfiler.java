@@ -48,14 +48,9 @@ public abstract class AsyncProfiler implements AsyncProfilerMBean
 
                 instance.initialize();
             }
-            catch (ConfigurationException ex)
+            catch (ConfigurationException | AsyncProfilerService.AsyncProfilerNotEnabled ex)
             {
                 throw ex;
-            }
-            catch (IllegalStateException ex)
-            {
-                if (!"Async-Profiler is not enabled.".equals(ex.getMessage()))
-                    throw ex;
             }
             catch (Throwable t)
             {

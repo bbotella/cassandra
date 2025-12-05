@@ -237,13 +237,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         {
             try
             {
-                byte[] content = profiler.fetch(remoteFile);
-                if (content == null)
-                {
-                    output.err.println("Remote file " + remoteFile + " not found or error occurred while returning it.");
-                    System.exit(1);
-                }
-                consumer.accept(content);
+                consumer.accept(profiler.fetch(remoteFile));
             }
             catch (Throwable t)
             {

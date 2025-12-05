@@ -34,6 +34,7 @@ import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.profiler.AsyncProfiler;
 import org.apache.cassandra.profiler.AsyncProfilerSafe;
 import org.apache.cassandra.profiler.AsyncProfilerUnsafe;
+import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.lang.String.format;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
@@ -125,6 +126,14 @@ public class AsyncProfilerServiceTest
     }
 
     @Test
+    public void testInvalidDurationThrowsException()
+    {
+        assertThatThrownBy(() -> getProfiler().start(cpu.name(), flamegraph.name(), "13h", testOutputFile.absolutePath()))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Max profiling duration is 43200 seconds. If you need longer profiling, use execute command instead");
+    }
+
+    @Test
     public void testInvalidFormatThrowsException()
     {
         assertThatThrownBy(() -> getProfiler().start(cpu.name(), "not_a_real_format", "60s", testOutputFile.absolutePath()))
@@ -172,7 +181,7 @@ public class AsyncProfilerServiceTest
             AsyncProfiler profiler = getProfiler();
             profiler.disable();
             profiler.execute("start,event=" + cpu.name() + ",file=" + testOutputFile.absolutePath());
-        }).hasCauseExactlyInstanceOf(IllegalStateException.class)
+        }).hasCauseExactlyInstanceOf(AsyncProfilerService.AsyncProfilerNotEnabled.class)
           .hasMessageContaining("Async-Profiler is not enabled.");
     }
 

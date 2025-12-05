@@ -47,6 +47,7 @@ public class AsyncProfilerService
     private static final EnumSet<AsyncProfilerEvent> VALID_EVENTS = EnumSet.allOf(AsyncProfilerEvent.class);
     private static final EnumSet<AsyncProfilerFormat> VALID_FORMATS = EnumSet.allOf(AsyncProfilerFormat.class);
     private static final Pattern VALID_FILENAME_REGEX_PATTERN = Pattern.compile("^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
+    private static final int MAX_SAFE_PROFILING_DURATION = 43200; // 12 hours
 
     public enum AsyncProfilerEvent
     {
@@ -109,7 +110,7 @@ public class AsyncProfilerService
         }
     }
 
-    private AsyncProfiler profilerInstance;
+    private volatile AsyncProfiler profilerInstance;
 
     private String logDir;
 
@@ -137,7 +138,7 @@ public class AsyncProfilerService
     public synchronized AsyncProfiler maybeInitialize()
     {
         if (!ASYNC_PROFILER_ENABLED.getBoolean())
-            throw new IllegalStateException("Async-Profiler is not enabled.");
+            throw new AsyncProfilerNotEnabled("Async-Profiler is not enabled.");
 
         // if somebody removes dir while a node runs, just recreate it
         createLogDir();
@@ -255,7 +256,8 @@ public class AsyncProfilerService
         }
         catch (Throwable t)
         {
-            return null;
+            logger.error("Result file " + resultFile + " not found or error occurred while returning it.", t);
+            throw new RuntimeException(t);
         }
     }
 
@@ -273,6 +275,7 @@ public class AsyncProfilerService
         }
         catch (Throwable t)
         {
+            logger.error("There was an error trying to execute status", t);
             return t.getMessage();
         }
     }
@@ -307,6 +310,10 @@ public class AsyncProfilerService
      */
     public static int parseDuration(String duration)
     {
+        int durationSeconds = new DurationSpec.IntSecondsBound(duration).toSeconds();
+        if (durationSeconds > MAX_SAFE_PROFILING_DURATION)
+            throw new IllegalArgumentException(format("Max profiling duration is %s seconds. If you need longer profiling, use execute command instead",
+                                                      MAX_SAFE_PROFILING_DURATION));
         return new DurationSpec.IntSecondsBound(duration).toSeconds();
     }
 
@@ -368,6 +375,14 @@ public class AsyncProfilerService
         catch (Throwable t)
         {
             throw new RuntimeException(t);
+        }
+    }
+
+    public static class AsyncProfilerNotEnabled extends IllegalStateException
+    {
+        public AsyncProfilerNotEnabled(String s)
+        {
+            super(s);
         }
     }
 }
