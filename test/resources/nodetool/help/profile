@@ -84,7 +84,7 @@ COMMANDS
             string values in the form of '5m', '30s' and similar.
 
             With --format option, Output format, one of 'flat', 'traces', 'collapsed',
-            'flamegraph', 'tree', 'jfr', 'otlp', defaults to 'flamegraph'
+            'flamegraph', 'tree', 'jfr', defaults to 'flamegraph'
         stop
             Stop Async-Profiler on a Cassandra process
 

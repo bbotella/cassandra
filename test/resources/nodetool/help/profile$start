@@ -23,7 +23,7 @@ OPTIONS
 
         -f <outputFormat>, --format <outputFormat>
             Output format, one of 'flat', 'traces', 'collapsed', 'flamegraph',
-            'tree', 'jfr', 'otlp', defaults to 'flamegraph'
+            'tree', 'jfr', defaults to 'flamegraph'
 
         -h <host>, --host <host>
             Node hostname or ip address

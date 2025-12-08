@@ -62,14 +62,15 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     private final boolean unsafeMode;
     private static String logDir;
 
+    // logDir as a parameter to be used by tests.
     public static synchronized AsyncProfilerService instance(String logDir)
     {
+        AsyncProfilerService.logDir = logDir;
         if (instance == null)
         {
             try
             {
                 instance = new AsyncProfilerService(ASYNC_PROFILER_UNSAFE_MODE.getBoolean());
-                AsyncProfilerService.logDir = logDir;
                 asyncProfiler = instance.getProfiler().orElse(null);
                 if (ASYNC_PROFILER_ENABLED.getBoolean())
                 {
@@ -84,11 +85,6 @@ public class AsyncProfilerService implements AsyncProfilerMBean
                 throw new RuntimeException(t);
             }
         }
-        else
-        {
-            // Update logDir even for existing instance
-            AsyncProfilerService.logDir = logDir;
-        }
         return AsyncProfilerService.instance;
     }
 
@@ -97,7 +93,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
         if (instance == null)
             return instance(ASYNC_PROFILER_LOG_DIR);
         else
-            return instance; // Don't overwrite existing logDir
+            return instance;
     }
 
     public AsyncProfilerService(boolean unsafeMode)
