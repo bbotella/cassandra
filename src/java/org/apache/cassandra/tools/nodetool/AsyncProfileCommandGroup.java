@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import org.apache.cassandra.io.util.File;
-import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
@@ -174,7 +173,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
                 {
                     output.out.print(profiler.execute(validateCommand(command)));
                 }
-                catch (SecurityException ex)
+                catch (Exception ex)
                 {
                     output.err.print(ex.getMessage());
                     System.exit(1);
@@ -209,8 +208,6 @@ public class AsyncProfileCommandGroup extends AbstractCommand
     @Command(name = "fetch", description = "Copy profiler result file from a node to a local file")
     public static class AsyncProfileFetchCommand extends AbstractCommand
     {
-        @Option(names = { "-b", "--binary" }, description = "treat file to be downloaded having binary content, not string one.")
-        private boolean binary;
 
         @Parameters(index = "0", description = "Remote profiler file name", arity = "1")
         private String remoteFile;
@@ -222,29 +219,16 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         protected void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                if (binary)
-                {
-                    doWithContent(profiler, remoteFile, content -> {
-                        try
-                        {
-                            Files.write(new File(localFile).toPath(), content, CREATE, TRUNCATE_EXISTING, WRITE);
-                        }
-                        catch (Throwable t)
-                        {
-                            throw new RuntimeException(t);
-                        }
-                    });
-                }
-                else
-                {
-                    doWithContent(profiler,
-                                  remoteFile,
-                                  content -> FileUtils.write(new File(localFile),
-                                                             List.of(new String(content)),
-                                                             CREATE,
-                                                             TRUNCATE_EXISTING,
-                                                             WRITE));
-                }
+                doWithContent(profiler, remoteFile, content -> {
+                    try
+                    {
+                        Files.write(new File(localFile).toPath(), content, CREATE, TRUNCATE_EXISTING, WRITE);
+                    }
+                    catch (Throwable t)
+                    {
+                        throw new RuntimeException(t);
+                    }
+                });
             }, false);
         }
 
@@ -256,7 +240,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
             }
             catch (Throwable t)
             {
-                System.exit(1);
+                throw new RuntimeException(t);
             }
         }
     }

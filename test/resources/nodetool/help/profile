@@ -40,8 +40,8 @@ SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
-                [(-u <username> | --username <username>)] profile fetch
-                [(-b | --binary)] [--] <remoteFile> <localFile>
+                [(-u <username> | --username <username>)] profile fetch [--]
+                <remoteFile> <localFile>
 
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
@@ -98,8 +98,5 @@ COMMANDS
             List profiling result files of a node
         fetch
             Copy profiler result file from a node to a local file
-
-            With --binary option, treat file to be downloaded having binary content,
-            not string one.
         status
             Get status of profiling

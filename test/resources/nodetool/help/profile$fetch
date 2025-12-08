@@ -6,13 +6,10 @@ SYNOPSIS
         nodetool [(-h <host> | --host <host>)] [(-p <port> | --port <port>)]
                 [(-pp | --print-port)] [(-pw <password> | --password <password>)]
                 [(-pwf <passwordFilePath> | --password-file <passwordFilePath>)]
-                [(-u <username> | --username <username>)] profile fetch
-                [(-b | --binary)] [--] <remoteFile> <localFile>
+                [(-u <username> | --username <username>)] profile fetch [--]
+                <remoteFile> <localFile>
 
 OPTIONS
-        -b, --binary
-            treat file to be downloaded having binary content, not string one.
-
         -h <host>, --host <host>
             Node hostname or ip address
 

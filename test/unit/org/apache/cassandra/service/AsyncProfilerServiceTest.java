@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.cassandra.tools;
+package org.apache.cassandra.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,6 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.distributed.shared.WithProperties;
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.io.util.FileUtils;
-import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.lang.String.format;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
@@ -195,7 +194,7 @@ public class AsyncProfilerServiceTest
             assertThatThrownBy(() -> {
                 AsyncProfilerService profiler = getProfiler();
                 profiler.status();
-            }).hasMessageContaining("Async profiler not available.");
+            }).hasMessageContaining("Async Profiler is not enabled. Enable it by setting cassandra.async_profiler.enabled property to true.");
         }
     }
 

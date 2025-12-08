@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import javax.management.StandardMBean;
@@ -63,7 +62,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     private final boolean unsafeMode;
     private static String logDir;
 
-    // logDir as a parameter to be used by tests.
+    @VisibleForTesting
     public static synchronized AsyncProfilerService instance(String logDir)
     {
         AsyncProfilerService.logDir = logDir;
@@ -72,14 +71,10 @@ public class AsyncProfilerService implements AsyncProfilerMBean
             try
             {
                 instance = new AsyncProfilerService(ASYNC_PROFILER_UNSAFE_MODE.getBoolean());
-                asyncProfiler = instance.getProfiler().orElse(null);
-                if (ASYNC_PROFILER_ENABLED.getBoolean())
-                {
-                    // register mbean first, before initialisation, which might fail (e.g. profiler functionality is disabled)
-                    MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfilerService.instance, AsyncProfilerMBean.class),
-                                                        AsyncProfilerService.MBEAN_NAME,
-                                                        MBeanWrapper.OnException.LOG);
-                }
+                asyncProfiler = instance.getProfiler();
+                MBeanWrapper.instance.registerMBean(new StandardMBean(AsyncProfilerService.instance, AsyncProfilerMBean.class),
+                                                    AsyncProfilerService.MBEAN_NAME,
+                                                    MBeanWrapper.OnException.LOG);
             }
             catch (Throwable t)
             {
@@ -268,7 +263,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     {
         try
         {
-            createLogDir();
+            maybeCreateProfilesLogDir();
             return Arrays.stream(new File(logDir).list()).map(File::name).sorted().collect(toList());
         }
         catch (Throwable t)
@@ -282,20 +277,20 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     {
         try
         {
-            createLogDir();
+            maybeCreateProfilesLogDir();
             return Files.readAllBytes(new File(logDir, resultFile).toPath());
         }
         catch (Throwable t)
         {
             logger.error("Result file " + resultFile + " not found or error occurred while returning it.", t);
-            throw new RuntimeException(t);
+            throw new RuntimeException("Result file " + resultFile + " not found or error occurred while returning it.", t);
         }
     }
 
     @Override
     public void purge()
     {
-        createLogDir();
+        maybeCreateProfilesLogDir();
         new File(logDir).deleteRecursive();
     }
 
@@ -313,7 +308,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     }
 
     @Override
-    public boolean isEnabled()
+    public synchronized boolean isEnabled()
     {
         return instance != null;
     }
@@ -324,7 +319,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
             throw new IllegalArgumentException("Output file name must not be null or empty.");
 
         if (!VALID_FILENAME_REGEX_PATTERN.matcher(outputFile).matches())
-            throw new IllegalArgumentException(format("Output file name must match pattern %s", VALID_FILENAME_REGEX_PATTERN));
+            throw new IllegalArgumentException(format("Output file name must match pattern %s.", VALID_FILENAME_REGEX_PATTERN));
 
         return outputFile;
     }
@@ -332,7 +327,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     public static String validateCommand(String command)
     {
         if (command == null || command.isBlank())
-            throw new IllegalArgumentException("Command can not be null or blank string");
+            throw new IllegalArgumentException("Command can not be null or blank string.");
 
         return command;
     }
@@ -345,15 +340,15 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     {
         int durationSeconds = new DurationSpec.IntSecondsBound(duration).toSeconds();
         if (durationSeconds > MAX_SAFE_PROFILING_DURATION)
-            throw new IllegalArgumentException(format("Max profiling duration is %s seconds. If you need longer profiling, use execute command instead",
+            throw new IllegalArgumentException(format("Max profiling duration is %s seconds. If you need longer profiling, use execute command instead.",
                                                       MAX_SAFE_PROFILING_DURATION));
-        return new DurationSpec.IntSecondsBound(duration).toSeconds();
+        return durationSeconds;
     }
 
     /**
      * @throws ConfigurationException in case it is not possible to configure directory for logs.
      */
-    private void createLogDir() throws ConfigurationException
+    private void maybeCreateProfilesLogDir() throws ConfigurationException
     {
         String dir = new File(logDir).toAbsolute().toString();
 
@@ -402,6 +397,9 @@ public class AsyncProfilerService implements AsyncProfilerMBean
 
     private <T> T run(ThrowingFunction<AsyncProfiler, T> f)
     {
+        if (!ASYNC_PROFILER_ENABLED.getBoolean())
+            throw new IllegalStateException("Async Profiler is not enabled. Enable it by setting " + ASYNC_PROFILER_ENABLED.getKey() +
+                                            " property to true.");
         if (asyncProfiler != null)
         {
             try
@@ -426,20 +424,20 @@ public class AsyncProfilerService implements AsyncProfilerMBean
         public abstract B apply(AsyncProfiler a) throws Throwable;
     }
 
-    private Optional<AsyncProfiler> getProfiler()
+    private AsyncProfiler getProfiler()
     {
         if (!ASYNC_PROFILER_ENABLED.getBoolean())
-            return Optional.empty();
+            return null;
 
         if (asyncProfiler != null)
-            return Optional.of(asyncProfiler);
+            return asyncProfiler;
 
-        createLogDir();
+        maybeCreateProfilesLogDir();
 
         try
         {
             asyncProfiler = AsyncProfiler.getInstance();
-            return Optional.of(asyncProfiler);
+            return asyncProfiler;
         }
         catch (Throwable t)
         {
