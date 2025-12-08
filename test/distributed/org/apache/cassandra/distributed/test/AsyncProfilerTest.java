@@ -37,7 +37,6 @@ import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -54,8 +53,7 @@ public class AsyncProfilerTest extends TestBaseImpl
         File newTmpDir = new File(tmpDir.newFolder());
 
         try (WithProperties withProperties = new WithProperties()
-                                             .set(ASYNC_PROFILER_ENABLED, true)
-                                             .set(ASYNC_PROFILER_LOG_DIR, newTmpDir.absolutePath());
+                                             .set(ASYNC_PROFILER_ENABLED, true);
              Cluster cluster = init(builder().withNodes(1).withConfig(c -> c.with(Feature.JMX)).start()))
         {
             this.cluster = cluster;
@@ -98,8 +96,7 @@ public class AsyncProfilerTest extends TestBaseImpl
     public void testListPurgeFetchWorksWithDisabledProfiler() throws Throwable
     {
         File newTmpDir = new File(tmpDir.newFolder());
-        try (WithProperties withProperties = new WithProperties().set(ASYNC_PROFILER_ENABLED, false)
-                                                                 .set(ASYNC_PROFILER_LOG_DIR, newTmpDir.absolutePath());
+        try (WithProperties withProperties = new WithProperties().set(ASYNC_PROFILER_ENABLED, false);
              Cluster cluster = init(builder().withNodes(1).withConfig(c -> c.with(Feature.JMX)).start()))
         {
             this.cluster = cluster;
@@ -108,10 +105,15 @@ public class AsyncProfilerTest extends TestBaseImpl
 
             FileUtils.write(new File(newTmpDir, fileNameToWriteTo), List.of("hello world"), StandardOpenOption.CREATE_NEW);
 
+            // Initialize AsyncProfilerService instance in the cluster node context with the test directory
+            String tmpDirPath = newTmpDir.absolutePath();
+            cluster.get(1).runOnInstance(() -> {
+                AsyncProfilerService.instance(tmpDirPath);
+            });
+
             // fetch
             String destinationFileName = UUID.randomUUID().toString();
             File destination = new File(newTmpDir, destinationFileName);
-            AsyncProfilerService.instance();
             fetch(fileNameToWriteTo, destination.absolutePath());
             assertTrue(destination.length() != 0);
 

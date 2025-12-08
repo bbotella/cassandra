@@ -19,6 +19,7 @@
 package org.apache.cassandra.service;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -44,7 +45,6 @@ import org.apache.cassandra.utils.MBeanWrapper;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
 
 public class AsyncProfilerService implements AsyncProfilerMBean
@@ -55,18 +55,21 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     private static final EnumSet<AsyncProfilerFormat> VALID_FORMATS = EnumSet.allOf(AsyncProfilerFormat.class);
     private static final Pattern VALID_FILENAME_REGEX_PATTERN = Pattern.compile("^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
     private static final int MAX_SAFE_PROFILING_DURATION = 43200; // 12 hours
+    private static final String ASYNC_PROFILER_LOG_DIR = Path.of("logs", "profiler").toString();
 
     private static AsyncProfilerService instance;
     private static AsyncProfiler asyncProfiler;
     private final boolean unsafeMode;
+    private static String logDir;
 
-    public static synchronized AsyncProfilerService instance()
+    public static synchronized AsyncProfilerService instance(String logDir)
     {
         if (instance == null)
         {
             try
             {
                 instance = new AsyncProfilerService(ASYNC_PROFILER_UNSAFE_MODE.getBoolean());
+                AsyncProfilerService.logDir = logDir;
                 asyncProfiler = instance.getProfiler().orElse(null);
                 if (ASYNC_PROFILER_ENABLED.getBoolean())
                 {
@@ -81,8 +84,20 @@ public class AsyncProfilerService implements AsyncProfilerMBean
                 throw new RuntimeException(t);
             }
         }
-
+        else
+        {
+            // Update logDir even for existing instance
+            AsyncProfilerService.logDir = logDir;
+        }
         return AsyncProfilerService.instance;
+    }
+
+    public static synchronized AsyncProfilerService instance()
+    {
+        if (instance == null)
+            return instance(ASYNC_PROFILER_LOG_DIR);
+        else
+            return instance; // Don't overwrite existing logDir
     }
 
     public AsyncProfilerService(boolean unsafeMode)
@@ -150,10 +165,6 @@ public class AsyncProfilerService implements AsyncProfilerMBean
             }
         }
     }
-
-
-
-    private String logDir;
 
     @Override
     public synchronized boolean start(String events, String outputFormat, String duration, String outputFileName)
@@ -347,17 +358,6 @@ public class AsyncProfilerService implements AsyncProfilerMBean
      */
     private void createLogDir() throws ConfigurationException
     {
-        String logDirPropertyValue = ASYNC_PROFILER_LOG_DIR.getString();
-        if (logDirPropertyValue == null)
-        {
-            String globalLogDir = CassandraRelevantProperties.LOG_DIR.getString();
-            logDir = File.getPath(globalLogDir, "async-profiler").toAbsolutePath().toString();
-        }
-        else
-        {
-            logDir = logDirPropertyValue;
-        }
-
         String dir = new File(logDir).toAbsolute().toString();
 
         if ((DatabaseDescriptor.getCommitLogLocation() != null && dir.startsWith(DatabaseDescriptor.getCommitLogLocation())) ||

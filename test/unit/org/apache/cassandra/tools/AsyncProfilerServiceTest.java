@@ -35,7 +35,6 @@ import org.apache.cassandra.service.AsyncProfilerService;
 
 import static java.lang.String.format;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
-import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_LOG_DIR;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
 import static org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent.cpu;
 import static org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat.flamegraph;
@@ -55,7 +54,6 @@ public class AsyncProfilerServiceTest
     @BeforeClass
     public static void setUpClass()
     {
-        ASYNC_PROFILER_LOG_DIR.setString(testOutputPath);
         DatabaseDescriptor.daemonInitialization();
     }
 
@@ -86,7 +84,7 @@ public class AsyncProfilerServiceTest
     private AsyncProfilerService getProfiler()
     {
         AsyncProfilerService.reset();
-        return AsyncProfilerService.instance();
+        return AsyncProfilerService.instance(testOutputPath);
     }
 
     @Test
