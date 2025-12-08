@@ -46,6 +46,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_ENABLED;
 import static org.apache.cassandra.config.CassandraRelevantProperties.ASYNC_PROFILER_UNSAFE_MODE;
+import static org.apache.cassandra.config.CassandraRelevantProperties.LOG_DIR;
 
 public class AsyncProfilerService implements AsyncProfilerMBean
 {
@@ -55,7 +56,7 @@ public class AsyncProfilerService implements AsyncProfilerMBean
     private static final EnumSet<AsyncProfilerFormat> VALID_FORMATS = EnumSet.allOf(AsyncProfilerFormat.class);
     private static final Pattern VALID_FILENAME_REGEX_PATTERN = Pattern.compile("^[a-zA-Z0-9-]*\\.?[a-zA-Z0-9-]*$");
     private static final int MAX_SAFE_PROFILING_DURATION = 43200; // 12 hours
-    private static final String ASYNC_PROFILER_LOG_DIR = Path.of("logs", "profiler").toString();
+    private static final String ASYNC_PROFILER_LOG_DIR = Path.of(LOG_DIR.getString(), "profiler").toString();
 
     private static AsyncProfilerService instance;
     private static AsyncProfiler asyncProfiler;
