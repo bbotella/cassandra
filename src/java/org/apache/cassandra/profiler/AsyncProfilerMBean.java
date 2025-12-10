@@ -18,6 +18,7 @@
 
 package org.apache.cassandra.profiler;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
@@ -80,8 +81,9 @@ public interface AsyncProfilerMBean
      *
      * @param resultFile file with profiler results
      * @return content of profiler resuls file, or null, when not found.
+     * @throws IOException not found or other exception occurred
      */
-    byte[] fetch(String resultFile);
+    byte[] fetch(String resultFile) throws IOException;
 
     /**
      * @return status the profiler is in, as string description, for diagnostic purposes

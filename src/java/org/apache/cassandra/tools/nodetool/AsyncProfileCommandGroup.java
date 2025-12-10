@@ -18,7 +18,9 @@
 
 package org.apache.cassandra.tools.nodetool;
 
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -26,9 +28,9 @@ import java.util.function.Consumer;
 
 import org.apache.cassandra.io.util.File;
 import org.apache.cassandra.profiler.AsyncProfilerMBean;
-import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerEvent;
 import org.apache.cassandra.service.AsyncProfilerService.AsyncProfilerFormat;
+import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.utils.FBUtilities;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -141,14 +143,14 @@ public class AsyncProfileCommandGroup extends AbstractCommand
     {
         @Option(names = { "-o", "--output" }, description = "File name to save profiling results into, defaults to a " +
                                                             "file of name 'yyyy-MM-dd-HH-mm-ss.html'")
-        public String filename = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")
-                                                  .withZone(ZoneId.systemDefault()).format(FBUtilities.now()) + ".html";
+        public String filename;
 
         @Override
         public void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                if (!profiler.stop(validateOutputFileName(filename)))
+                String file = filename != null ? validateOutputFileName(filename) : null;
+                if (!profiler.stop(file))
                 {
                     output.err.println("Profiler has already stopped or there was a failure to stop it.");
                     System.exit(1);
@@ -173,7 +175,7 @@ public class AsyncProfileCommandGroup extends AbstractCommand
                 {
                     output.out.print(profiler.execute(validateCommand(command)));
                 }
-                catch (Exception ex)
+                catch (Throwable ex)
                 {
                     output.err.print(ex.getMessage());
                     System.exit(1);
@@ -219,29 +221,25 @@ public class AsyncProfileCommandGroup extends AbstractCommand
         protected void execute(NodeProbe probe)
         {
             doWithProfiler(probe, profiler -> {
-                doWithContent(profiler, remoteFile, content -> {
-                    try
-                    {
-                        Files.write(new File(localFile).toPath(), content, CREATE, TRUNCATE_EXISTING, WRITE);
-                    }
-                    catch (Throwable t)
-                    {
-                        throw new RuntimeException(t);
-                    }
-                });
+                try
+                {
+                    Files.write(new File(localFile).toPath(), profiler.fetch(remoteFile), CREATE, TRUNCATE_EXISTING, WRITE);
+                }
+                catch (NoSuchFileException e)
+                {
+                    probe.output().err.println("Remote file " + remoteFile + " was not found.");
+                    System.exit(1);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    probe.output().err.println(e.getMessage());
+                    System.exit(1);
+                }
+                catch (IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
             }, false);
-        }
-
-        private void doWithContent(AsyncProfilerMBean profiler, String remoteFile, Consumer<byte[]> consumer)
-        {
-            try
-            {
-                consumer.accept(profiler.fetch(remoteFile));
-            }
-            catch (Throwable t)
-            {
-                throw new RuntimeException(t);
-            }
         }
     }
 

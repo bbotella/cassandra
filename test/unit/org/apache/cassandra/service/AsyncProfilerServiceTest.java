@@ -83,7 +83,7 @@ public class AsyncProfilerServiceTest
     private AsyncProfilerService getProfiler()
     {
         AsyncProfilerService.reset();
-        return AsyncProfilerService.instance(testOutputPath);
+        return AsyncProfilerService.instance(testOutputPath, false);
     }
 
     @Test
@@ -116,7 +116,7 @@ public class AsyncProfilerServiceTest
     {
         try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
         {
-            assertThatThrownBy(() -> getProfiler().start("not_a_real_event", "flamegraph", "60s", testOutputFile.absolutePath()))
+            assertThatThrownBy(() -> getProfiler().start("not_a_real_event", "flamegraph", "60s", testOutputFile.name()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Event must be one or a combination of [cpu, alloc, lock, wall, nativemem, cache_misses]");
         }
@@ -127,7 +127,7 @@ public class AsyncProfilerServiceTest
     {
         try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
         {
-            assertThatThrownBy(() -> getProfiler().start(cpu.name(), flamegraph.name(), "13h", testOutputFile.absolutePath()))
+            assertThatThrownBy(() -> getProfiler().start(cpu.name(), flamegraph.name(), "13h", testOutputFile.name()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Max profiling duration is 43200 seconds. If you need longer profiling, use execute command instead");
         }
@@ -138,7 +138,7 @@ public class AsyncProfilerServiceTest
     {
         try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
         {
-            assertThatThrownBy(() -> getProfiler().start(cpu.name(), "not_a_real_format", "60s", testOutputFile.absolutePath()))
+            assertThatThrownBy(() -> getProfiler().start(cpu.name(), "not_a_real_format", "60s", testOutputFile.name()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Format must be one of [flat, traces, collapsed, flamegraph, tree, jfr]");
         }
@@ -167,7 +167,7 @@ public class AsyncProfilerServiceTest
                 getProfiler().start(cpu.name(),
                                     flamegraph.name(),
                                     "10abc",
-                                    "| grep test");
+                                    "abc");
             })
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Invalid duration: 10abc Accepted units:[SECONDS, MINUTES, HOURS, DAYS] where case matters and only non-negative values.");
@@ -224,6 +224,18 @@ public class AsyncProfilerServiceTest
     }
 
     @Test
+    public void testFetchIllegalFile()
+    {
+        assertThatThrownBy(() -> getProfiler().fetch("../abc"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Illegal file to fetch: ../abc");
+
+        assertThatThrownBy(() -> getProfiler().fetch("/etc/abc"))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessage("Illegal file to fetch: /etc/abc");
+    }
+
+    @Test
     public void testSafeExecute()
     {
         try (WithProperties properties = new WithProperties().set(ASYNC_PROFILER_UNSAFE_MODE, false))
@@ -231,7 +243,7 @@ public class AsyncProfilerServiceTest
             assertThatThrownBy(() -> getProfiler().execute("foo"))
             .isInstanceOf(SecurityException.class)
             .hasMessageContaining("The arbitrary command execution is not permitted with org.apache.cassandra.profiler:type=AsyncProfiler " +
-                                  "MBean. If unsafe command execution is required, start Cassandra with ASYNC_PROFILER_UNSAFE_MODE " +
+                                  "MBean. If unsafe command execution is required, start Cassandra with " + ASYNC_PROFILER_UNSAFE_MODE.getKey() + ' ' +
                                   "property set to true. Rejected command: foo");
         }
     }

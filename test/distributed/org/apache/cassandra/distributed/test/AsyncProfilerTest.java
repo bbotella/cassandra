@@ -108,7 +108,7 @@ public class AsyncProfilerTest extends TestBaseImpl
             // Initialize AsyncProfilerService instance in the cluster node context with the test directory
             String tmpDirPath = newTmpDir.absolutePath();
             cluster.get(1).runOnInstance(() -> {
-                AsyncProfilerService.instance(tmpDirPath);
+                AsyncProfilerService.instance(tmpDirPath, true);
             });
 
             // fetch
