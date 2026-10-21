@@ -8232,6 +8232,7 @@ jobs:
     parallelism: 1
     steps:
     - run:
+        no_output_timeout: 30m
         name: Log Environment Information
         command: |
           echo '*** id ***'
