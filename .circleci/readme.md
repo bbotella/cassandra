@@ -192,3 +192,4 @@ Read below for details how to generate the files manually without the `generate.
 7. add the Apache license header to the newly created PAID file:
    `cat license.yml config.yml.PAID > config.yml.PAID.new && mv config.yml.PAID.new config.yml.PAID`
 8. finally, remember to update the config.yml
+
