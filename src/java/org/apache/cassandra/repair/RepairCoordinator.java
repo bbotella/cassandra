@@ -86,6 +86,7 @@ import org.apache.cassandra.utils.Throwables;
 import org.apache.cassandra.utils.TimeUUID;
 import org.apache.cassandra.utils.WrappedRunnable;
 import org.apache.cassandra.utils.concurrent.Future;
+import org.apache.cassandra.utils.concurrent.ImmediateFuture;
 import org.apache.cassandra.utils.progress.ProgressEvent;
 import org.apache.cassandra.utils.progress.ProgressEventNotifier;
 import org.apache.cassandra.utils.progress.ProgressEventType;
@@ -520,11 +521,19 @@ public class RepairCoordinator implements Runnable, ProgressEventNotifier, Repai
         }
 
         ExecutorPlus executor = createExecutor();
+        if (!ctx.repair().registerCoordinatorExecutor(executor))
+        {
+            executor.shutdown();
+            return ImmediateFuture.failure(RepairException.warn("Repair service is shut down, not starting repair " + state.id));
+        }
         state.phase.repairSubmitted();
         return task.perform(executor, validationScheduler)
                    // after adding the callback java could no longer infer the type...
                    .<Pair<CoordinatedRepairResult, Supplier<String>>>map(r -> Pair.create(r, task::successMessage))
-                   .addCallback((s, f) -> executor.shutdown());
+                   .addCallback((s, f) -> {
+                       ctx.repair().unregisterCoordinatorExecutor(executor);
+                       executor.shutdown();
+                   });
     }
 
     private ExecutorPlus createExecutor()

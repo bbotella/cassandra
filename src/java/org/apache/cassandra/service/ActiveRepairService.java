@@ -203,6 +203,10 @@ public class ActiveRepairService implements IEndpointStateChangeSubscriber, IFai
     private final ConcurrentMap<TimeUUID, RepairSession> sessions = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<TimeUUID, ParentRepairSession> parentRepairSessions = new ConcurrentHashMap<>();
+    // executors of in-flight RepairCoordinators; a coordinator's future may never complete on shutdown, so its executor is shut down here
+    private final Set<ExecutorPlus> coordinatorExecutors = ConcurrentHashMap.newKeySet();
+    // guarded by this
+    private boolean isShutdown = false;
     // map of top level repair id (parent repair id) -> state
     private final Cache<TimeUUID, CoordinatorState> repairs;
     // map of top level repair id (parent repair id) -> participate state
@@ -481,14 +485,22 @@ public class ActiveRepairService implements IEndpointStateChangeSubscriber, IFai
         if (cfnames.length == 0)
             return null;
 
-        final RepairSession session = new RepairSession(ctx, validationScheduler, parentRepairSession,
-                                                        range, excludedDeadNodes, keyspace,
-                                                        parallelismDegree, allReplicas, isIncremental, pullRepair,
-                                                        previewKind, optimiseStreams, repairData, repairPaxos,
-                                                        dontPurgeTombstones, repairAccord, permitNoQuorum, cfnames);
-        repairs.getIfPresent(parentRepairSession).register(session.state);
+        final RepairSession session;
+        // synchronized with terminateSessions, so a session is either terminated or never started
+        synchronized (this)
+        {
+            if (isShutdown)
+                throw new IllegalStateException("Repair service is shut down, not starting repair session for " + parentRepairSession);
 
-        sessions.put(session.getId(), session);
+            session = new RepairSession(ctx, validationScheduler, parentRepairSession,
+                                        range, excludedDeadNodes, keyspace,
+                                        parallelismDegree, allReplicas, isIncremental, pullRepair,
+                                        previewKind, optimiseStreams, repairData, repairPaxos,
+                                        dontPurgeTombstones, repairAccord, permitNoQuorum, cfnames);
+            repairs.getIfPresent(parentRepairSession).register(session.state);
+
+            sessions.put(session.getId(), session);
+        }
         // register listeners
         registerOnFdAndGossip(session);
 
@@ -1259,9 +1271,38 @@ public class ActiveRepairService implements IEndpointStateChangeSubscriber, IFai
 
     public void shutdownNowAndWait(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException
     {
+        List<Object> executors = new ArrayList<>();
+        synchronized (this)
+        {
+            isShutdown = true;
+            executors.addAll(coordinatorExecutors);
+        }
         // sessions have their own executors that need to also be shutdown
         terminateSessions();
-        ExecutorUtils.shutdownNowAndWait(timeout, unit, snapshotExecutor);
+        // only shutdown, not shutdownNow: coordinator tasks do not block, and interrupting them could surface as uncaught errors
+        ExecutorUtils.shutdown(executors);
+        ExecutorUtils.shutdownNow(Collections.singletonList(snapshotExecutor));
+        executors.add(snapshotExecutor);
+        ExecutorUtils.awaitTermination(timeout, unit, executors);
+    }
+
+    /**
+     * Registers the executor of a {@link org.apache.cassandra.repair.RepairCoordinator}, so it is shut down with this service
+     * even if the repair never completes.
+     *
+     * @return false if this service is shut down, in which case the repair must not start
+     */
+    public synchronized boolean registerCoordinatorExecutor(ExecutorPlus executor)
+    {
+        if (isShutdown)
+            return false;
+        coordinatorExecutors.add(executor);
+        return true;
+    }
+
+    public void unregisterCoordinatorExecutor(ExecutorPlus executor)
+    {
+        coordinatorExecutors.remove(executor);
     }
 
     public Collection<CoordinatorState> coordinators()
